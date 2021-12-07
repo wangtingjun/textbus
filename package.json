@@ -68,9 +68,14 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "@tanbo/bezier": "^1.0.0",
+    "@tanbo/color": "^0.0.3",
+    "@tanbo/color-picker": "^0.1.2",
+    "@tanbo/css-themes": "^0.0.1",
     "@tanbo/di": "^1.0.4",
     "@tanbo/stream": "^0.0.9",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "prismjs": "^1.23.0"
   },
   "repository": {
     "type": "git",

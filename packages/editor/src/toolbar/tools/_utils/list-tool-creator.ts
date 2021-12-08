@@ -3,7 +3,7 @@ import {
   Commander,
   Component,
   ContentType,
-  Keyboard, QueryState,
+  QueryState,
   QueryStateType,
   Slot,
   TBSelection,
@@ -14,7 +14,6 @@ import { listComponent, ListComponentInstance, paragraphComponent } from '../../
 
 export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
   const selection = injector.get(TBSelection)
-  const keyboard = injector.get(Keyboard)
   const translator = injector.get(Translator)
   const commander = injector.get(Commander)
   const instance = {
@@ -96,7 +95,7 @@ export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
         return slot
       })
 
-      keyboard.delete()
+      commander.delete()
       const component = listComponent.createInstance(injector, {
         type,
         slots
@@ -104,7 +103,7 @@ export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
       if (selection.commonAncestorSlot!.isEmpty && selection.commonAncestorComponent!.slots.length === 1) {
         commander.replace(selection.commonAncestorComponent!, component)
       } else {
-        keyboard.insert(component)
+        commander.insert(component)
       }
 
       selection.setStart(startSlot, startOffset)

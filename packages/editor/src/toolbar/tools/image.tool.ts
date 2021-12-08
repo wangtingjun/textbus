@@ -1,5 +1,5 @@
 import { Injector } from '@tanbo/di'
-import { Keyboard, Query, QueryState, QueryStateType } from '@textbus/core'
+import { Commander, Query, QueryState, QueryStateType } from '@textbus/core'
 import { createElement, createTextNode } from '@textbus/browser'
 
 import { DialogTool, DialogToolConfig } from '../toolkit/_api'
@@ -146,7 +146,7 @@ class SizeSetter implements FormItem {
 export function imageToolConfigFactory(injector: Injector): DialogToolConfig {
   const i18n = injector.get(I18n)
   const query = injector.get(Query)
-  const keyboard = injector.get(Keyboard)
+  const commander = injector.get(Commander)
 
   const childI18n = i18n.getContext('plugins.toolbar.imageTool.view')
   const form = new Form({
@@ -229,7 +229,7 @@ export function imageToolConfigFactory(injector: Injector): DialogToolConfig {
       if (state.state === QueryStateType.Enabled) {
         state.value!.useState(value)
       } else if (value?.src) {
-        keyboard.insert(imageComponent.createInstance(injector, value))
+        commander.insert(imageComponent.createInstance(injector, value))
       }
     }
   }

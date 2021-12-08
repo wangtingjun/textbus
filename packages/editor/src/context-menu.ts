@@ -7,7 +7,6 @@ import {
   ContextMenuEventData,
   ContextMenuItem,
   invokeListener,
-  Keyboard,
   Renderer,
   Slot,
   TBEvent,
@@ -33,7 +32,6 @@ export class ContextMenu {
               private message: Message,
               private renderer: Renderer,
               private commander: Commander,
-              private keyboard: Keyboard,
               private selection: TBSelection) {
     this.elementRef = createElement('div', {
       classes: ['textbus-contextmenu'],

@@ -1,6 +1,6 @@
 import { filter, fromEvent, map, merge, Subscription } from '@tanbo/stream'
 import { Injectable } from '@tanbo/di'
-import { Commander, ContentType, Keyboard, Slot } from '@textbus/core'
+import { Commander, ContentType, Slot } from '@textbus/core'
 
 import { createElement } from '../_utils/uikit'
 import { SelectionBridge } from './selection-bridge'
@@ -38,8 +38,7 @@ export class Input {
 
   private subscriptions: Subscription[] = []
 
-  constructor(private keyboard: Keyboard,
-              private parser: Parser,
+  constructor(private parser: Parser,
               private commander: Commander,
               private selectionBridge: SelectionBridge) {
     const textarea = this.textarea
@@ -198,7 +197,7 @@ export class Input {
         }))
       ).subscribe(text => {
         if (text) {
-          this.keyboard.insert(text)
+          this.commander.insert(text)
         }
       })
     )

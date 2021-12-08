@@ -3,7 +3,6 @@ import {
   Commander,
   QueryState,
   Query,
-  QueryStateType,
   FormatValue
 } from '@textbus/core'
 

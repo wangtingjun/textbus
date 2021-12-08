@@ -1,12 +1,11 @@
 import { Injectable } from '@tanbo/di'
-import { Commander, Keyboard, TBSelection } from '@textbus/core'
+import { Commander, TBSelection } from '@textbus/core'
 
 import { Input, TBPlugin } from '../core/_api'
 
 @Injectable()
 export class DefaultShortcut implements TBPlugin {
-  constructor(private keyboard: Keyboard,
-              private selection: TBSelection,
+  constructor(private selection: TBSelection,
               private commander: Commander,
               private input: Input) {
   }
@@ -18,7 +17,7 @@ export class DefaultShortcut implements TBPlugin {
         key: 'Enter'
       },
       action: () => {
-        this.keyboard.enter()
+        this.commander.enter()
       }
     })
     input.addShortcut({
@@ -31,7 +30,7 @@ export class DefaultShortcut implements TBPlugin {
         const startSlot = this.selection.startSlot!
         const isToEnd = startOffset === startSlot.length || startSlot.isEmpty
         const content = isToEnd ? '\n\n' : '\n'
-        const isInserted = this.keyboard.insert(content)
+        const isInserted = this.commander.insert(content)
         if (isInserted && isToEnd) {
           this.selection.setLocation(startSlot, startOffset + 1)
         }
@@ -42,7 +41,7 @@ export class DefaultShortcut implements TBPlugin {
         key: ['Delete', 'Backspace']
       },
       action: (key) => {
-        this.keyboard.delete(key === 'Backspace')
+        this.commander.delete(key === 'Backspace')
       }
     })
     input.addShortcut({

@@ -1,5 +1,5 @@
 import { Injector } from '@tanbo/di'
-import { Keyboard, Query, QueryState, QueryStateType, TBSelection } from '@textbus/core'
+import { Commander, Query, QueryState, QueryStateType, TBSelection } from '@textbus/core'
 
 import { SelectTool, SelectToolConfig } from '../toolkit/_api'
 import { preComponent } from '../../components/pre.component'
@@ -8,7 +8,7 @@ import { I18n } from '../../i18n'
 export function preToolConfigFactory(injector: Injector): SelectToolConfig {
   const i18n = injector.get(I18n)
   const query = injector.get(Query)
-  const keyboard = injector.get(Keyboard)
+  const commander = injector.get(Commander)
   const selection = injector.get(TBSelection)
   return {
     iconClasses: ['textbus-icon-terminal'],
@@ -77,7 +77,7 @@ export function preToolConfigFactory(injector: Injector): SelectToolConfig {
           lang: value,
           code: ''
         })
-        keyboard.insert(component)
+        commander.insert(component)
         selection.setLocation(component.slots.get(0)!, 0)
       }
     }

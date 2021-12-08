@@ -1,4 +1,4 @@
-import { Keyboard, QueryState, QueryStateType, TBSelection } from '@textbus/core'
+import { Commander, QueryState, QueryStateType, TBSelection } from '@textbus/core'
 import { Injector } from '@tanbo/di'
 
 import { DropdownTool, DropdownToolConfig } from '../toolkit/_api'
@@ -8,7 +8,7 @@ import { TableCellSlot, tableComponent } from '@textbus/editor'
 
 export function tableAddToolConfigFactory(injector: Injector): DropdownToolConfig {
   const i18n = injector.get(I18n)
-  const keyboard = injector.get(Keyboard)
+  const commander = injector.get(Commander)
   const selection = injector.get(TBSelection)
   const childI18n = i18n.getContext('plugins.toolbar.tableAddTool.view')
   const form = new Form({
@@ -112,7 +112,7 @@ export function tableAddToolConfigFactory(injector: Injector): DropdownToolConfi
         cells: create(value.rows || 4, value.cols || 6)
       })
 
-      keyboard.insert(component)
+      commander.insert(component)
       selection.setLocation(component.slots.get(0)!, 0)
     }
   }

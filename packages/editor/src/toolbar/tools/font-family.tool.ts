@@ -1,4 +1,4 @@
-import { Commander, FormatValue, Query, QueryState, QueryStateType } from '@textbus/core'
+import { Commander, FormatValue, Query, QueryState } from '@textbus/core'
 import { SelectTool, SelectToolConfig } from '../toolkit/_api'
 import { Injector } from '@tanbo/di'
 import { I18n } from '../../i18n'

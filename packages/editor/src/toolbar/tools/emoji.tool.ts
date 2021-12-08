@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import { Observable, Subject } from '@tanbo/stream'
-import { Keyboard, QueryState, QueryStateType } from '@textbus/core'
+import { Commander, QueryState, QueryStateType } from '@textbus/core'
 
 import { DropdownTool, DropdownToolConfig } from '../toolkit/dropdown-tool'
 import { I18n } from '../../i18n'
@@ -53,7 +53,7 @@ class Emoji implements ViewController<any> {
 
 export function emojiToolConfigFactory(injector: Injector): DropdownToolConfig {
   const i18n = injector.get(I18n)
-  const keyboard = injector.get(Keyboard)
+  const commander = injector.get(Commander)
   return {
     iconClasses: ['textbus-icon-emoji'],
     tooltip: i18n.get('plugins.toolbar.emojiTool.tooltip'),
@@ -65,7 +65,7 @@ export function emojiToolConfigFactory(injector: Injector): DropdownToolConfig {
       }
     },
     useValue(value: string) {
-      keyboard.insert(value)
+      commander.insert(value)
     }
   }
 }

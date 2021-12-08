@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -192,7 +192,7 @@ tb-timeline {
   match(element: HTMLElement): boolean {
     return element.nodeName.toLowerCase() === 'tb-timeline'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     return timelineComponent.createInstance(injector, Array.from(element.children).map(child => {
       let type!: TimelineStyle
       for (const k of timelineTypes) {

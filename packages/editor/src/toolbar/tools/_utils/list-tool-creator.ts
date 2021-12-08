@@ -1,7 +1,7 @@
 import { Injector } from '@tanbo/di'
 import {
   Commander,
-  Component,
+  ComponentInstance,
   ContentType,
   QueryState,
   QueryStateType,
@@ -17,12 +17,12 @@ export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
   const translator = injector.get(Translator)
   const commander = injector.get(Commander)
   const instance = {
-    queryState(): QueryState<Component<ListComponentInstance>> {
+    queryState(): QueryState<ComponentInstance<ListComponentInstance>> {
       const component = selection.commonAncestorComponent
-      if (component?.name === listComponent.name && (component.instance as ListComponentInstance).type === type) {
+      if (component?.name === listComponent.name && (component.methods as ListComponentInstance).type === type) {
         return {
           state: QueryStateType.Enabled,
-          value: component as Component<ListComponentInstance>
+          value: component as ComponentInstance<ListComponentInstance>
         }
       }
 
@@ -40,13 +40,13 @@ export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
         instance.toParagraph(queryState.value!)
       }
     },
-    toParagraph(component: Component<ListComponentInstance>) {
+    toParagraph(component: ComponentInstance<ListComponentInstance>) {
       const range = selection.getSlotRange()!
       const startSlot = selection.startSlot!
       const endSlot = selection.endSlot!
       const startOffset = selection.startOffset!
       const endOffset = selection.endOffset!
-      const segment = component.instance.split!(range.startIndex, range.endIndex)
+      const segment = component.methods.split!(range.startIndex, range.endIndex)
       if (segment.before.length) {
         commander.insertBefore(listComponent.createInstance(injector, {
           type,

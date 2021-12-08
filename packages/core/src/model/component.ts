@@ -26,7 +26,7 @@ export interface SegmentedSlots<T extends Slot = Slot> {
   after: T[]
 }
 
-export interface ComponentInstance<State = any> {
+export interface ComponentMethods<State = any> {
   render: ComponentRender
 
   toJSON(): State
@@ -34,14 +34,14 @@ export interface ComponentInstance<State = any> {
   split?(startIndex: number, endIndex: number): SegmentedSlots
 }
 
-export interface Component<Instance extends ComponentInstance<State> = ComponentInstance, State = any> {
+export interface ComponentInstance<Methods extends ComponentMethods<State> = ComponentMethods, State = any> {
   parent: Slot | null
   changeMarker: ChangeMarker
   name: string
   length: 1
   type: ContentType
   slots: Slots
-  instance: Instance
+  methods: Methods
 
   useState(state: State): void
 

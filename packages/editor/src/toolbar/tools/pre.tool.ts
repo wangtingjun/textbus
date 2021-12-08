@@ -65,7 +65,7 @@ export function preToolConfigFactory(injector: Injector): SelectToolConfig {
       const state = query.queryComponent(preComponent)
       return {
         state: state.state,
-        value: state.value ? state.value.instance.toJSON().lang : null
+        value: state.value ? state.value.methods.toJSON().lang : null
       }
     },
     onChecked(value: any) {

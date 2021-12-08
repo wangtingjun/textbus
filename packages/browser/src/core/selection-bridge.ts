@@ -1,7 +1,7 @@
 import { fromEvent, Observable, Subject, Subscription, tap } from '@tanbo/stream'
 import { Inject, Injectable } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   NativeSelectionBridge,
   NativeSelectionConnector,
   Renderer, SelectionLocation,
@@ -149,7 +149,7 @@ export class SelectionBridge implements NativeSelectionBridge {
       return this.findFocusNativeTextNode(vElement, offset, typeof prev === 'string' && prev !== '\n')
     }
     if (prev === '\n') {
-      for (const component of slot.sliceContent().filter((i): i is Component => {
+      for (const component of slot.sliceContent().filter((i): i is ComponentInstance => {
         return typeof i !== 'string'
       })) {
         if (component === current) {

@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent, Formats,
   Formatter,
@@ -433,7 +433,7 @@ export const preComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'PRE'
   },
-  read(el: HTMLElement, injector: Injector): Component {
+  read(el: HTMLElement, injector: Injector): ComponentInstance {
     const lines = el.querySelectorAll('.tb-code-line')
     let code: string
     if (lines.length) {

@@ -1,7 +1,7 @@
 import { Inject, Injectable, Injector } from '@tanbo/di'
 import {
+  ComponentInstance,
   Component,
-  ComponentFactory,
   FormatItem,
   Formatter,
   FormatValue,
@@ -27,9 +27,9 @@ export interface ComponentLoader {
 
   match(element: HTMLElement): boolean
 
-  read(element: HTMLElement, context: Injector, slotParser: SlotParser): Component
+  read(element: HTMLElement, context: Injector, slotParser: SlotParser): ComponentInstance
 
-  component: ComponentFactory<Component>
+  component: Component<ComponentInstance>
 }
 
 export interface FormatLoader {

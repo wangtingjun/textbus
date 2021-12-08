@@ -1,7 +1,7 @@
 import { Injector } from '@tanbo/di'
 import { ComponentLoader, SlotParser } from '@textbus/browser'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -158,7 +158,7 @@ export const alertComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'DIV' && element.classList.contains('tb-alert')
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     return alertComponent.createInstance(injector, {
       type: '',
       fill: false,

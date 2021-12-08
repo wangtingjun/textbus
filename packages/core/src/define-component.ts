@@ -3,8 +3,8 @@ import { Injector } from '@tanbo/di'
 
 import { Translator } from './foundation/_api'
 import {
-  Component,
   ComponentInstance,
+  ComponentMethods,
   ContentType,
   ChangeMarker,
   Slot,
@@ -13,21 +13,21 @@ import {
   Slots
 } from './model/_api'
 
-export interface ComponentOptions<Instance extends ComponentInstance<State>, State, InitData> {
+export interface ComponentOptions<Methods extends ComponentMethods<State>, State, InitData> {
   name: string
   type: ContentType
 
   transform(translator: Translator, state: State): InitData
 
-  setup(initState?: InitData): Instance
+  setup(initState?: InitData): Methods
 }
 
-export interface ComponentFactory<Component = any, State = any, InitData = any> {
+export interface Component<ComponentInstance = any, State = any, InitData = any> {
   name: string
 
   transform(translator: Translator, state: State): InitData
 
-  createInstance(context: Injector, state?: InitData): Component
+  createInstance(context: Injector, state?: InitData): ComponentInstance
 }
 
 export interface ChangeController<T> {
@@ -45,14 +45,14 @@ interface ComponentContext<T> {
   initState?: T
   changeController: ChangeController<T>
   contextInjector: Injector
-  component: Component
+  componentInstance: ComponentInstance
 }
 
 let context: ComponentContext<any> | null = null
 
-export function defineComponent<Instance extends ComponentInstance,
+export function defineComponent<Methods extends ComponentMethods,
   State = any,
-  InitData = any>(options: ComponentOptions<Instance, State, InitData>): ComponentFactory<Component<Instance, State>, State, InitData> {
+  InitData = any>(options: ComponentOptions<Methods, State, InitData>): Component<ComponentInstance<Methods, State>, State, InitData> {
   return {
     name: options.name,
     transform(translator: Translator, state: State): InitData {
@@ -86,14 +86,14 @@ export function defineComponent<Instance extends ComponentInstance,
         onChange: stateChangeSubject.asObservable()
       }
 
-      const component: Component<Instance, State> = {
+      const componentInstance: ComponentInstance<Methods, State> = {
         changeMarker: marker,
         parent: null,
         name: options.name,
         length: 1,
         type: options.type,
         slots: null as any,
-        instance: null as any,
+        methods: null as any,
         useState(newState: State) {
           const oldState = state
           state = newState
@@ -113,18 +113,18 @@ export function defineComponent<Instance extends ComponentInstance,
         toJSON() {
           return {
             name: options.name,
-            state: component.instance.toJSON()
+            state: componentInstance.methods.toJSON()
           }
         }
       }
       context = {
         contextInjector,
         changeController,
-        slots: new Slots(component, () => new Slot([])),
-        component
+        slots: new Slots(componentInstance, () => new Slot([])),
+        componentInstance: componentInstance
       }
-      component.instance = options.setup(initData)
-      component.slots = context.slots
+      componentInstance.methods = options.setup(initData)
+      componentInstance.slots = context.slots
       let state = context.initState
 
       context.slots.onChange.subscribe(ops => {
@@ -136,8 +136,8 @@ export function defineComponent<Instance extends ComponentInstance,
       })
 
       context = null
-      recordContextListenerEnd(component)
-      return component
+      recordContextListenerEnd(componentInstance)
+      return componentInstance
     }
   }
 }
@@ -153,7 +153,7 @@ export function useSlots<T extends Slot, State extends SlotLiteral>(slots: T[], 
   if (!context) {
     throw new Error('不能在组件外部调用！')
   }
-  const s = new Slots(context.component, slotRestore, slots)
+  const s = new Slots(context.componentInstance, slotRestore, slots)
   context.slots = s
   return s
 }
@@ -198,7 +198,7 @@ export class TBEvent<T, S extends Slot = Slot> {
 
 export interface InsertEventData {
   index: number
-  content: string | Component
+  content: string | ComponentInstance
 }
 
 export interface EnterEventData {
@@ -267,7 +267,7 @@ class EventCache<T, K extends keyof T = keyof T> {
   }
 }
 
-const eventCaches = new WeakMap<Component, EventCache<EventTypes>>()
+const eventCaches = new WeakMap<ComponentInstance, EventCache<EventTypes>>()
 
 let rendererContext: EventCache<EventTypes> | null = null
 
@@ -275,22 +275,22 @@ function recordContextListener() {
   rendererContext = new EventCache()
 }
 
-function recordContextListenerEnd(component: Component) {
+function recordContextListenerEnd(component: ComponentInstance) {
   if (rendererContext) {
     eventCaches.set(component, rendererContext)
   }
   rendererContext = null
 }
 
-export function invokeListener(target: Component, eventType: 'onViewChecked'): void
-export function invokeListener(target: Component, eventType: 'onDelete', data: TBEvent<DeleteEventData>): void
-export function invokeListener(target: Component, eventType: 'onEnter', data: TBEvent<EnterEventData>): void
-export function invokeListener(target: Component, eventType: 'onInsert', data: TBEvent<InsertEventData>): void
-export function invokeListener(target: Component, eventType: 'onInserted', data: TBEvent<InsertEventData>): void
-export function invokeListener(target: Component, eventType: 'onContextMenu', data: TBEvent<ContextMenuEventData>): void
-export function invokeListener(target: Component, eventType: 'onPaste', data: TBEvent<PasteEventData>): void
+export function invokeListener(target: ComponentInstance, eventType: 'onViewChecked'): void
+export function invokeListener(target: ComponentInstance, eventType: 'onDelete', data: TBEvent<DeleteEventData>): void
+export function invokeListener(target: ComponentInstance, eventType: 'onEnter', data: TBEvent<EnterEventData>): void
+export function invokeListener(target: ComponentInstance, eventType: 'onInsert', data: TBEvent<InsertEventData>): void
+export function invokeListener(target: ComponentInstance, eventType: 'onInserted', data: TBEvent<InsertEventData>): void
+export function invokeListener(target: ComponentInstance, eventType: 'onContextMenu', data: TBEvent<ContextMenuEventData>): void
+export function invokeListener(target: ComponentInstance, eventType: 'onPaste', data: TBEvent<PasteEventData>): void
 export function invokeListener<K extends keyof EventTypes,
-  D = EventTypes[K] extends (...args: infer U) => any ? U : never>(target: Component, eventType: K, data?: D) {
+  D = EventTypes[K] extends (...args: infer U) => any ? U : never>(target: ComponentInstance, eventType: K, data?: D) {
   const cache = eventCaches.get(target)
   if (cache) {
     const callbacks = cache.get(eventType)

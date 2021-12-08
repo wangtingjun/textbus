@@ -63,7 +63,7 @@ export function videoToolConfigFactory(injector: Injector): DialogToolConfig {
       if (state.state === QueryStateType.Enabled) {
         return {
           state: QueryStateType.Enabled,
-          value: state.value!.instance.toJSON() as VideoState
+          value: state.value!.methods.toJSON() as VideoState
         }
       }
       return {
@@ -75,7 +75,7 @@ export function videoToolConfigFactory(injector: Injector): DialogToolConfig {
       if (value) {
         const state = query.queryComponent(videoComponent)
         if (state.state === QueryStateType.Enabled) {
-          state.value!.instance.mergeProps(value)
+          state.value!.methods.mergeProps(value)
         } else {
           commander.insert(videoComponent.createInstance(injector, value))
         }

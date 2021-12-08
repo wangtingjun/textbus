@@ -1,13 +1,13 @@
-import { Component, ComponentLiteral } from './component'
+import { ComponentInstance, ComponentLiteral } from './component'
 
 export class Content {
-  private data: Array<string | Component> = []
+  private data: Array<string | ComponentInstance> = []
 
   get length() {
     return this.data.reduce((p, n) => p + n.length, 0)
   }
 
-  insert(index: number, content: string | Component) {
+  insert(index: number, content: string | ComponentInstance) {
     if (index >= this.length) {
       this.append(content)
     } else {
@@ -45,7 +45,7 @@ export class Content {
     }
   }
 
-  append(content: Component | string) {
+  append(content: ComponentInstance | string) {
     const lastChildIndex = this.data.length - 1
     const lastChild = this.data[lastChildIndex]
     if (typeof lastChild === 'string' && typeof content === 'string') {
@@ -55,7 +55,7 @@ export class Content {
     }
   }
 
-  cut(startIndex = 0, endIndex = this.length): Array<string | Component> {
+  cut(startIndex = 0, endIndex = this.length): Array<string | ComponentInstance> {
     if (endIndex <= startIndex) {
       return []
     }
@@ -66,12 +66,12 @@ export class Content {
     return discardedContents
   }
 
-  slice(startIndex = 0, endIndex = this.length): Array<string | Component> {
+  slice(startIndex = 0, endIndex = this.length): Array<string | ComponentInstance> {
     if (startIndex >= endIndex) {
       return []
     }
     let index = 0
-    const result: Array<string | Component> = []
+    const result: Array<string | ComponentInstance> = []
     for (const el of this.data) {
       const fragmentStartIndex = index
       const len = el.length
@@ -101,7 +101,7 @@ export class Content {
     })
   }
 
-  indexOf(element: Component): number {
+  indexOf(element: ComponentInstance): number {
     let index = 0
     for (const item of this.data) {
       if (item === element) {

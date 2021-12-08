@@ -1,8 +1,8 @@
 import { Injector } from '@tanbo/di'
 import { ComponentLoader, SlotParser } from '@textbus/browser'
 import {
-  Component,
   ComponentInstance,
+  ComponentMethods,
   ContentType,
   defineComponent, onContextMenu,
   Slot,
@@ -51,7 +51,7 @@ export interface TableRange {
 }
 
 
-export interface TableComponentInstance extends ComponentInstance<TableLiteral> {
+export interface TableComponentInstance extends ComponentMethods<TableLiteral> {
   selectCells(startSlot: TableCellSlot, endSlot: TableCellSlot): TableRange
 }
 
@@ -370,7 +370,7 @@ export const tableComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'TABLE'
   },
-  read(element: HTMLTableElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLTableElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     const {tHead, tBodies, tFoot} = element
     const headers: TableCellSlot[][] = []
     const bodies: TableCellSlot[][] = []

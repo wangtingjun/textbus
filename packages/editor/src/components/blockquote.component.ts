@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -46,7 +46,7 @@ export const blockquoteComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'BLOCKQUOTE'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     const slot = slotParser(new Slot([
       ContentType.Text,
       ContentType.BlockComponent,

@@ -1,7 +1,7 @@
 import { Injectable } from '@tanbo/di'
 import { distinctUntilChanged, Observable, Subject } from '@tanbo/stream'
 
-import { Component, ContentType, Slot } from '../model/_api'
+import { ComponentInstance, ContentType, Slot } from '../model/_api'
 import { Renderer } from './renderer'
 import { RootComponentRef } from './_injection-tokens'
 
@@ -21,7 +21,7 @@ export interface SelectedScope {
 export interface SelectedSlotRange {
   startIndex: number
   endIndex: number
-  component: Component
+  component: ComponentInstance
 }
 
 export interface NativeSelectionConnector {
@@ -36,10 +36,10 @@ export interface SelectionLocation {
 export interface CommonAncestorSlotScope {
   startIndex: number
   startSlot: Slot
-  startChildComponent: Component | null
+  startChildComponent: ComponentInstance | null
   endIndex: number
   endSlot: Slot
-  endChildComponent: Component | null
+  endChildComponent: ComponentInstance | null
   startChildSlot: Slot
   endChildSlot: Slot
 }
@@ -134,14 +134,14 @@ export class TBSelection {
     return f
   }
 
-  get commonAncestorComponent(): Component | null {
+  get commonAncestorComponent(): ComponentInstance | null {
     let startComponent = this.startSlot?.parent
     let endComponent = this.endSlot?.parent
     if (startComponent === endComponent) {
       return startComponent || null
     }
-    const startPaths: Component[] = []
-    const endPaths: Component[] = []
+    const startPaths: ComponentInstance[] = []
+    const endPaths: ComponentInstance[] = []
 
     while (startComponent) {
       startPaths.push(startComponent)
@@ -160,7 +160,7 @@ export class TBSelection {
       }
       endComponent = parentSlot.parent
     }
-    let f: Component | null = null
+    let f: ComponentInstance | null = null
     while (startPaths.length && endPaths.length) {
       const s = startPaths.pop()!
       const e = endPaths.pop()!
@@ -421,7 +421,7 @@ export class TBSelection {
     return null
   }
 
-  findComponentByPath(paths: number[]): Component | null {
+  findComponentByPath(paths: number[]): ComponentInstance | null {
     const result = TBSelection.findTreeNode(paths, this.root.component)
     if (result instanceof Slot) {
       return null
@@ -575,8 +575,8 @@ export class TBSelection {
     const commonAncestorSlot = this.commonAncestorSlot
     const commonAncestorComponent = this.commonAncestorComponent
 
-    let startChildComponent: Component | null = null
-    let endChildComponent: Component | null = null
+    let startChildComponent: ComponentInstance | null = null
+    let endChildComponent: ComponentInstance | null = null
 
     while (startSlot !== commonAncestorSlot) {
       startChildComponent = startSlot.parent!
@@ -870,8 +870,8 @@ export class TBSelection {
                     endIndex: number): SelectedScope[] {
     const start: SelectedScope[] = []
     const end: SelectedScope[] = []
-    let startParentComponent: Component | null = null
-    let endParentComponent: Component | null = null
+    let startParentComponent: ComponentInstance | null = null
+    let endParentComponent: ComponentInstance | null = null
 
     let startSlotRefIndex: number | null = null
     let endSlotRefIndex: number | null = null
@@ -957,7 +957,7 @@ export class TBSelection {
     return result
   }
 
-  private static findTreeNode(paths: number[], component: Component): Slot | Component | null {
+  private static findTreeNode(paths: number[], component: ComponentInstance): Slot | ComponentInstance | null {
     const firstSlotRefIndex = paths.shift()!
     const slot = component.slots.get(firstSlotRefIndex)!
     if (paths.length === 0) {
@@ -965,7 +965,7 @@ export class TBSelection {
     }
     const position = paths.shift()!
 
-    component = slot.getContentAtIndex(position) as Component
+    component = slot.getContentAtIndex(position) as ComponentInstance
 
     if (paths.length === 0) {
       return component || null

@@ -1,7 +1,7 @@
 import { Injector, NullInjector, Provider, ReflectiveInjector, Type } from '@tanbo/di'
 import {
   Commander, COMPONENT_LIST,
-  ComponentFactory, ComponentList, FORMATTER_LIST, FormatterList,
+  Component, ComponentList, FORMATTER_LIST, FormatterList,
   History, HOST_NATIVE_NODE,
   NativeRenderer,
   NativeSelectionBridge,
@@ -54,7 +54,7 @@ export class CoreEditor {
     DefaultShortcut,
   ]
 
-  constructor(public rootComponentFactory: ComponentFactory) {
+  constructor(public rootComponentFactory: Component) {
     this.scroller.appendChild(this.docContainer)
   }
 

@@ -1,7 +1,7 @@
-import { Component, Formatter } from '@textbus/core'
+import { ComponentInstance, Formatter } from '@textbus/core'
 import { InjectionToken } from '@tanbo/di'
 
-import { ComponentFactory } from '../define-component'
+import { Component } from '../define-component'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type NativeNode = {} & any
@@ -35,9 +35,9 @@ export abstract class NativeRenderer {
 }
 
 export abstract class RootComponentRef {
-  abstract component: Component
+  abstract component: ComponentInstance
 }
 
 export const HOST_NATIVE_NODE = new InjectionToken<NativeNode>('HOST_NATIVE_NODE')
-export const COMPONENT_LIST = new InjectionToken<ComponentFactory[]>('COMPONENT_LIST')
+export const COMPONENT_LIST = new InjectionToken<Component[]>('COMPONENT_LIST')
 export const FORMATTER_LIST = new InjectionToken<Formatter[]>('FORMATTER_LIST')

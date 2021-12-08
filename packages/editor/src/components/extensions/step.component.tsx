@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -205,7 +205,7 @@ export const stepComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.nodeName.toLowerCase() === 'tb-step'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     return stepComponent.createInstance(injector, {
       step: 1,
       slots: Array.from(element.children).map(i => {

@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -78,7 +78,7 @@ export const jumbotronComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.nodeName.toLowerCase() === 'tb-jumbotron'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     const style = element.style
     return jumbotronComponent.createInstance(injector, {
       backgroundImage: (style.backgroundImage || '').replace(/^url\(['"]?|['"]?\)$/g, ''),

@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component, ComponentInstance,
+  ComponentInstance, ComponentMethods,
   ContentType, defineComponent,
   Translator, useState,
   VElement
@@ -17,7 +17,7 @@ export interface ImageComponentLiteral {
   float?: string
 }
 
-export interface ImageComponentInstance extends ComponentInstance<ImageComponentLiteral> {
+export interface ImageComponentInstance extends ComponentMethods<ImageComponentLiteral> {
   merge(state: Partial<ImageComponentLiteral>): void
 }
 
@@ -70,7 +70,7 @@ export const imageComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'IMG'
   },
-  read(element: HTMLElement, injector: Injector): Component {
+  read(element: HTMLElement, injector: Injector): ComponentInstance {
     const style = element.style
     return imageComponent.createInstance(injector, {
       src: element.getAttribute('src') || '',

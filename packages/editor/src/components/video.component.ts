@@ -1,5 +1,5 @@
 import { Injector } from '@tanbo/di'
-import { Component, ContentType, defineComponent, Translator, useState, VElement } from '@textbus/core'
+import { ComponentInstance, ContentType, defineComponent, Translator, useState, VElement } from '@textbus/core'
 import { ComponentLoader } from '@textbus/browser'
 
 export interface VideoState {
@@ -64,7 +64,7 @@ export const videoComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.nodeName.toLowerCase() === 'video'
   },
-  read(element: HTMLVideoElement, context: Injector): Component {
+  read(element: HTMLVideoElement, context: Injector): ComponentInstance {
     return videoComponent.createInstance(context, {
       src: element.src,
       width: element.style.width || element.width + '',

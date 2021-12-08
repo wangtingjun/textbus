@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@tanbo/di'
 
 import {
-  Component,
+  ComponentInstance,
   ComponentLiteral,
   FormatType,
   Slot,
@@ -13,7 +13,7 @@ import { ComponentList } from './component-list'
 @Injectable()
 export class Translator {
   constructor(private contextInjector: Injector,
-              private componentFactoryMap: ComponentList,
+              private componentMap: ComponentList,
               private formatterMap: FormatterList) {
   }
 
@@ -22,8 +22,8 @@ export class Translator {
     return this.loadSlot(slot, slotLiteral)
   }
 
-  createComponent(componentLiteral: ComponentLiteral): Component | null {
-    const factory = this.componentFactoryMap.get(componentLiteral.name)
+  createComponent(componentLiteral: ComponentLiteral): ComponentInstance | null {
+    const factory = this.componentMap.get(componentLiteral.name)
     if (factory) {
       const state = factory.transform(this, componentLiteral.state)
       return factory.createInstance(this.contextInjector, state)

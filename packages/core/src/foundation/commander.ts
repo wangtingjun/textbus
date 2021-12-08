@@ -1,7 +1,7 @@
 import { Injectable } from '@tanbo/di'
 
 import { SelectionLocation, TBSelection } from './selection'
-import { Component, Formatter, FormatType, FormatValue, placeholder, Slot } from '../model/_api'
+import { ComponentInstance, Formatter, FormatType, FormatValue, placeholder, Slot } from '../model/_api'
 import { NativeRenderer } from './_injection-tokens'
 import { DeleteEventData, EnterEventData, InsertEventData, invokeListener, TBEvent } from '../define-component'
 
@@ -15,7 +15,7 @@ export class Commander {
               private nativeRenderer: NativeRenderer) {
   }
 
-  insert(content: string | Component): boolean {
+  insert(content: string | ComponentInstance): boolean {
     const selection = this.selection
     if (!selection.isSelected) {
       return false
@@ -346,7 +346,7 @@ export class Commander {
     })
   }
 
-  insertBefore(component: Component, ref: Component) {
+  insertBefore(component: ComponentInstance, ref: ComponentInstance) {
     const parentSlot = ref?.parent
 
     if (parentSlot) {
@@ -356,7 +356,7 @@ export class Commander {
     }
   }
 
-  insertAfter(component: Component, ref: Component) {
+  insertAfter(component: ComponentInstance, ref: ComponentInstance) {
     const parentSlot = ref?.parent
 
     if (parentSlot) {
@@ -366,12 +366,12 @@ export class Commander {
     }
   }
 
-  replace(source: Component, target: Component) {
+  replace(source: ComponentInstance, target: ComponentInstance) {
     this.insertBefore(target, source)
     this.remove(source)
   }
 
-  remove(component: Component) {
+  remove(component: ComponentInstance) {
     const parentSlot = component?.parent
 
     if (parentSlot) {
@@ -430,7 +430,7 @@ export class Commander {
     return true
   }
 
-  private _insert(target: Slot, index: number, content: string | Component, expand: boolean): false | Slot {
+  private _insert(target: Slot, index: number, content: string | ComponentInstance, expand: boolean): false | Slot {
     let isPreventDefault = true
     const event = new TBEvent<InsertEventData>(target, {
       index: this.selection.startOffset!,
@@ -464,7 +464,7 @@ export class Commander {
     return target
   }
 
-  private _deleteTree(component: Component, currentSlot: Slot, stopSlot: Slot): DeleteTreeState {
+  private _deleteTree(component: ComponentInstance, currentSlot: Slot, stopSlot: Slot): DeleteTreeState {
     const parentSlot = component.parent
     if (parentSlot) {
       const index = parentSlot.indexOf(component)

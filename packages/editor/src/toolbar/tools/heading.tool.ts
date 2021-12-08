@@ -1,7 +1,7 @@
 import { Injector } from '@tanbo/di'
 import {
   Commander,
-  Component,
+  ComponentInstance,
   ContentType,
   QueryState,
   Query,
@@ -84,7 +84,7 @@ export function headingToolConfigFactory(injector: Injector): SelectToolConfig {
       if (headingState.state === QueryStateType.Enabled) {
         return {
           state: QueryStateType.Enabled,
-          value: headingState.value!.instance.type
+          value: headingState.value!.methods.type
         }
       }
       const paragraphState = query.queryComponent(paragraphComponent)
@@ -112,7 +112,7 @@ export function headingToolConfigFactory(injector: Injector): SelectToolConfig {
 
         const slot = translator.createSlot(currentSlot.toJSON()).cut(block.startIndex, block.endIndex)
 
-        let component: Component
+        let component: ComponentInstance
         if (/h[1-6]/.test(value)) {
           component = headingComponent.createInstance(injector, {
             type: value,

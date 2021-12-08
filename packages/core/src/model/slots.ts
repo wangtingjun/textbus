@@ -2,7 +2,7 @@ import { Observable, Subject, Subscription } from '@tanbo/stream'
 
 import { Slot, SlotLiteral } from './slot'
 import { Action, Operation } from './operation'
-import { Component } from './component'
+import { ComponentInstance } from './component'
 
 export interface SlotChangeData<T extends Slot> {
   source: T
@@ -36,7 +36,7 @@ export class Slots<SlotState extends SlotLiteral = SlotLiteral, T extends Slot =
 
   private changeListeners = new WeakMap<T, Subscription>()
 
-  constructor(public host: Component,
+  constructor(public host: ComponentInstance,
               public slotRestore: SlotRestore<T, SlotState>,
               slots: T[] = []) {
     this.onChange = this.changeEvent.asObservable()

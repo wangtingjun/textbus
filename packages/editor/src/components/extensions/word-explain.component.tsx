@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -162,7 +162,7 @@ tb-word-explain:hover .tb-word-explain-close {
   match(element: HTMLElement): boolean {
     return element.nodeName.toLowerCase() === 'tb-word-explain'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     const title = element.querySelector('.tb-word-explain-title')!
     const subtitle = element.querySelector('.tb-word-explain-subtitle')!
     const detail = element.querySelector('.tb-word-explain-detail')!

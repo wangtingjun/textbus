@@ -1,10 +1,11 @@
-import { CoreEditor } from '@textbus/browser'
+import { Injector, Provider } from '@tanbo/di'
+import { Observable, Subject } from '@tanbo/stream'
 import { makeError } from '@textbus/core'
+import { CoreEditor } from '@textbus/browser'
 
 import { EditorOptions } from './types'
 import { rootComponent } from './root.component'
 import { Layout } from './layout'
-import { Provider } from '@tanbo/di'
 import { I18n } from './i18n'
 import { i18n_zh_CN } from './i18n/zh_CN'
 import { ContextMenu } from './context-menu'
@@ -15,12 +16,15 @@ import { Message } from './message'
 const editorErrorFn = makeError('Editor')
 
 export class Editor extends CoreEditor {
+  onReady: Observable<Injector>
   layout = new Layout()
 
   private host: HTMLElement
 
+  private readyEvent = new Subject<Injector>()
+
   constructor(public selector: string | HTMLElement,
-              public options: EditorOptions) {
+              public options: EditorOptions = {}) {
     super(options.customRootComponent || rootComponent)
     if (typeof selector === 'string') {
       this.host = document.querySelector(selector)!
@@ -30,6 +34,7 @@ export class Editor extends CoreEditor {
     if (!this.host || !(this.host instanceof HTMLElement)) {
       throw editorErrorFn('selector is not an HTMLElement, or the CSS selector cannot find a DOM element in the document.')
     }
+    this.onReady = this.readyEvent.asObservable()
     this.layout.workbench.append(this.scroller)
     if (options.theme) {
       this.layout.setTheme(options.theme)
@@ -64,6 +69,7 @@ export class Editor extends CoreEditor {
         options.plugins?.forEach(plugin => {
           plugin.setup(rootInjector)
         })
+        this.readyEvent.next(rootInjector)
       })
     })
   }

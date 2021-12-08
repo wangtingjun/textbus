@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component, ComponentInstance,
+  ComponentInstance, ComponentMethods,
   ContentType, defineComponent,
   onDelete,
   onEnter,
@@ -23,7 +23,7 @@ export interface ListComponentState {
   slots: Slot[]
 }
 
-export interface ListComponentInstance extends ComponentInstance<ListComponentLiteral> {
+export interface ListComponentInstance extends ComponentMethods<ListComponentLiteral> {
   type: 'ul' | 'ol'
 }
 
@@ -108,7 +108,7 @@ export const listComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'OL' || element.tagName === 'UL'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     const slots: Slot[] = []
 
     const childNodes = Array.from(element.childNodes)

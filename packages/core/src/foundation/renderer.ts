@@ -6,7 +6,7 @@ import {
   VTextNode,
   FormatItem,
   FormatTree,
-  Component,
+  ComponentInstance,
   Slot,
 } from '../model/_api'
 import { invokeListener, Ref } from '../define-component'
@@ -127,7 +127,7 @@ export class Renderer {
   // private componentNativeNode = new WeakMap<ComponentRef, NativeElement>()
   // private slotNativeNode = new WeakMap<SlotRef, NativeElement>()
 
-  private componentVNode = new WeakMap<Component, VElement>()
+  private componentVNode = new WeakMap<ComponentInstance, VElement>()
 
   private slotVNodeCaches = new WeakMap<Slot, VElement>()
 
@@ -151,7 +151,7 @@ export class Renderer {
     this.onViewUpdateBefore = this.viewUpdateBeforeEvent.asObservable()
   }
 
-  render(component: Component) {
+  render(component: ComponentInstance) {
     this.viewUpdateBeforeEvent.next()
     console.time()
     if (component.changeMarker.changed) {
@@ -179,7 +179,7 @@ export class Renderer {
     this.viewCheckedEvent.next()
   }
 
-  getVNodeByComponent(component: Component) {
+  getVNodeByComponent(component: ComponentInstance) {
     return this.componentVNode.get(component)
   }
 
@@ -474,12 +474,12 @@ export class Renderer {
     return this.createTextNode(vDom)
   }
 
-  private componentRender(component: Component): VElement {
+  private componentRender(component: ComponentInstance): VElement {
     if (component.changeMarker.dirty) {
       Promise.resolve().then(() => {
         invokeListener(component, 'onViewChecked')
       })
-      const node = component.instance.render(false, (slot, factory) => {
+      const node = component.methods.render(false, (slot, factory) => {
         return this.slotRender(slot, factory)
       })
       component.changeMarker.rendered()
@@ -540,7 +540,7 @@ export class Renderer {
       this.slotVNodeCaches.set(slot, root)
       return root
     }
-    slot.sliceContent().filter((i): i is Component => {
+    slot.sliceContent().filter((i): i is ComponentInstance => {
       return typeof i !== 'string'
     }).forEach(component => {
       if (!component.changeMarker.changed) {
@@ -684,7 +684,7 @@ export class Renderer {
   }
 
   private createVDomByContent(slot: Slot, startIndex: number, endIndex: number): Array<VTextNode | VElement> {
-    const elements: Array<string | Component> = slot.sliceContent(startIndex, endIndex).map(i => {
+    const elements: Array<string | ComponentInstance> = slot.sliceContent(startIndex, endIndex).map(i => {
       if (typeof i === 'string') {
         return i.match(/[\n]|[^\n]+/g)!
       }

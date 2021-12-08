@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@tanbo/di'
 import { fromEvent, Subscription } from '@tanbo/stream'
 import {
   Commander,
-  Component,
+  ComponentInstance,
   ContentType,
   ContextMenuEventData,
   ContextMenuItem,
@@ -139,7 +139,7 @@ export class ContextMenu {
 
   private makeContextmenu() {
     const startSlot = this.selection.startSlot!
-    let component: Component | null = startSlot.getContentAtIndex(this.selection.startOffset! - 1) as Component
+    let component: ComponentInstance | null = startSlot.getContentAtIndex(this.selection.startOffset! - 1) as ComponentInstance
     if (!component || typeof component === 'string') {
       component = this.selection.commonAncestorComponent!
     }
@@ -149,7 +149,7 @@ export class ContextMenu {
     const menuItems: ContextMenuItem[][] = []
     while (component) {
       invokeListener(
-        component as Component,
+        component as ComponentInstance,
         'onContextMenu',
         new TBEvent<ContextMenuEventData>(startSlot, {
           index: this.selection.startOffset!,

@@ -1,6 +1,6 @@
 import { fromEvent, Subscription } from '@tanbo/stream'
 import {
-  Component,
+  ComponentInstance,
   Renderer,
   TBSelection,
 } from '@textbus/core'
@@ -28,7 +28,7 @@ export class ImageAndVideoDragResizePlugin implements TBPlugin {
   private text = document.createElement('div')
   private handlers: HTMLButtonElement[] = []
 
-  private currentComponent: Component<ImageComponentInstance> | null = null
+  private currentComponent: ComponentInstance<ImageComponentInstance> | null = null
   private currentElement: HTMLImageElement | HTMLVideoElement | null = null
 
   private subs: Subscription[] = []
@@ -117,7 +117,7 @@ export class ImageAndVideoDragResizePlugin implements TBPlugin {
       })
 
       const unUp = fromEvent(document, 'mouseup').subscribe(() => {
-        this.currentComponent!.instance.merge({
+        this.currentComponent!.methods.merge({
           width: endWidth + 'px',
           height: endHeight + 'px'
         })
@@ -147,7 +147,7 @@ export class ImageAndVideoDragResizePlugin implements TBPlugin {
           return
         }
         this.currentElement = srcElement
-        this.currentComponent = position.slot.getContentAtIndex(position.startIndex) as Component<ImageComponentInstance>
+        this.currentComponent = position.slot.getContentAtIndex(position.startIndex) as ComponentInstance<ImageComponentInstance>
         const selection = contextDocument.getSelection()!
         // this.selection.removeAllRanges(true)
         selection.removeAllRanges()

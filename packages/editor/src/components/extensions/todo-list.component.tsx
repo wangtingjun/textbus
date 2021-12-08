@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType,
   defineComponent,
   Slot,
@@ -168,7 +168,7 @@ tb-todo-list {
   match(element: HTMLElement): boolean {
     return element.nodeName.toLowerCase() === 'tb-todo-list'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     return todoListComponent.createInstance(injector, Array.from(element.children).map(child => {
       const stateElement = child.querySelector('.tb-todo-list-state') || document.createElement('div')
       const slot = new TodoListSlot(

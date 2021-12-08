@@ -1,6 +1,6 @@
 import { Injector } from '@tanbo/di'
 import {
-  Component,
+  ComponentInstance,
   ContentType, defineComponent,
   Slot, SlotLiteral,
   SlotRender, Translator, useContext,
@@ -42,7 +42,7 @@ export const paragraphComponentLoader: ComponentLoader = {
   match(element: HTMLElement): boolean {
     return element.tagName === 'P'
   },
-  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): Component {
+  read(element: HTMLElement, injector: Injector, slotParser: SlotParser): ComponentInstance {
     const slot = slotParser(new Slot([
       ContentType.Text,
       ContentType.InlineComponent

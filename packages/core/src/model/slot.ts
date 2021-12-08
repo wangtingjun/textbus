@@ -1,6 +1,6 @@
 import { Subscription } from '@tanbo/stream'
 
-import { Component, ComponentLiteral } from './component'
+import { ComponentInstance, ComponentLiteral } from './component'
 import { Action } from './operation'
 import { Content } from './content'
 import { Format, FormatLiteral, FormatRange, FormatValue } from './format'
@@ -25,10 +25,10 @@ export interface SlotLiteral<T = any> {
 export const placeholder = '\u200b'
 
 export class Slot<T = any> {
-  parent: Component | null = null
+  parent: ComponentInstance | null = null
   changeMarker = new ChangeMarker()
 
-  private componentChangeListeners = new WeakMap<Component, Subscription>()
+  private componentChangeListeners = new WeakMap<ComponentInstance, Subscription>()
 
   get length() {
     return this.content.length
@@ -74,7 +74,7 @@ export class Slot<T = any> {
     return true
   }
 
-  write(content: string | Component) {
+  write(content: string | ComponentInstance) {
     const isString = typeof content === 'string'
     const contentType = isString ? ContentType.Text : content.type
     if (!this.schema.includes(contentType)) {
@@ -95,10 +95,10 @@ export class Slot<T = any> {
     return this.insert(content)
   }
 
-  insert(content: string | Component): boolean
+  insert(content: string | ComponentInstance): boolean
   insert(content: string, formats: Formats): boolean
   insert(content: string, formatter: Formatter, value: FormatValue): boolean
-  insert(content: string | Component, formatter?: Formatter | Formats, value?: FormatValue): boolean {
+  insert(content: string | ComponentInstance, formatter?: Formatter | Formats, value?: FormatValue): boolean {
     const contentType = typeof content === 'string' ? ContentType.Text : content.type
     if (!this.schema.includes(contentType)) {
       return false
@@ -320,7 +320,7 @@ export class Slot<T = any> {
     }
   }
 
-  removeComponent(component: Component) {
+  removeComponent(component: ComponentInstance) {
     const index = this.indexOf(component)
     if (index > -1) {
       this.retain(index + 1)
@@ -366,7 +366,7 @@ export class Slot<T = any> {
     return slot
   }
 
-  indexOf(component: Component) {
+  indexOf(component: ComponentInstance) {
     return this.content.indexOf(component)
   }
 

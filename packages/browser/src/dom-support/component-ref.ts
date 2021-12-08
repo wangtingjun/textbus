@@ -1,7 +1,7 @@
 import { Inject, Injectable, Injector } from '@tanbo/di'
 import {
+  ComponentInstance,
   Component,
-  ComponentFactory,
   ContentType,
   Slot,
   SlotLiteral,
@@ -14,9 +14,9 @@ import { Parser } from './parser'
 
 @Injectable()
 export class ComponentRef extends RootComponentRef {
-  component!: Component
+  component!: ComponentInstance
 
-  constructor(@Inject(ROOT_COMPONENT_FACTORY) private componentFactory: ComponentFactory,
+  constructor(@Inject(ROOT_COMPONENT_FACTORY) private componentFactory: Component,
               @Inject(INIT_CONTENT) private content: string | SlotLiteral,
               private translator: Translator,
               private injector: Injector,

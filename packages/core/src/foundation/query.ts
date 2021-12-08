@@ -1,8 +1,8 @@
 import { Injectable } from '@tanbo/di'
 
 import { TBSelection } from './selection'
-import { Component, ComponentInstance, Formatter, FormatValue, Slot } from '../model/_api'
-import { ComponentFactory } from '../define-component'
+import { ComponentInstance, ComponentMethods, Formatter, FormatValue, Slot } from '../model/_api'
+import { Component } from '../define-component'
 
 export enum QueryStateType {
   Normal = 'Normal',
@@ -33,17 +33,17 @@ export class Query {
     return this.mergeState(states)
   }
 
-  queryComponent<Instance extends ComponentInstance>(
-    comp: ComponentFactory<Component<Instance>>,
-    filter?: (instance: Component<Instance>) => boolean): QueryState<Component<Instance>> {
+  queryComponent<Instance extends ComponentMethods>(
+    comp: Component<ComponentInstance<Instance>>,
+    filter?: (instance: ComponentInstance<Instance>) => boolean): QueryState<ComponentInstance<Instance>> {
     let parent = this.selection.commonAncestorComponent
 
     while (parent) {
       if (parent.name === comp.name) {
-        if (!filter || filter(parent as Component<Instance>)) {
+        if (!filter || filter(parent as ComponentInstance<Instance>)) {
           return {
             state: QueryStateType.Enabled,
-            value: parent as Component<Instance>
+            value: parent as ComponentInstance<Instance>
           }
         }
       }
@@ -55,7 +55,7 @@ export class Query {
     }
   }
 
-  queryWrappedComponent<Instance extends ComponentInstance>(comp: ComponentFactory<Component<Instance>>): QueryState<Component<Instance>> {
+  queryWrappedComponent<Instance extends ComponentMethods>(comp: Component<ComponentInstance<Instance>>): QueryState<ComponentInstance<Instance>> {
     const selection = this.selection
     if (!selection.isSelected ||
       selection.isCollapsed ||
@@ -70,7 +70,7 @@ export class Query {
     if (typeof component !== 'string' && component.name === comp.name) {
       return {
         state: QueryStateType.Enabled,
-        value: component as Component<Instance>
+        value: component as ComponentInstance<Instance>
       }
     }
     return {

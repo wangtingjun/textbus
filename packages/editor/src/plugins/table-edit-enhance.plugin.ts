@@ -2,7 +2,7 @@ import { Injector } from '@tanbo/di'
 import { CubicBezier } from '@tanbo/bezier'
 import { Subscription } from '@tanbo/stream'
 
-import { Slot, Component, TBSelection, Renderer, Query, QueryStateType, SelectedScope } from '@textbus/core'
+import { Slot, ComponentInstance, TBSelection, Renderer, Query, QueryStateType, SelectedScope } from '@textbus/core'
 import { EDITABLE_DOCUMENT, EDITOR_CONTAINER, TBPlugin } from '@textbus/browser'
 
 import { TableCellPosition, TableCellSlot, tableComponent, TableComponentInstance } from '../components/table.component'
@@ -43,7 +43,7 @@ export class TableEditEnhancePlugin implements TBPlugin {
   private endCell: HTMLTableCellElement | null = null
   private animateBezier = new CubicBezier(0.25, 0.1, 0.25, 0.1)
   private animateId: any
-  private tableComponent: Component<TableComponentInstance> | null = null
+  private tableComponent: ComponentInstance<TableComponentInstance> | null = null
   private inTable = true
 
   private subs: Subscription[] = []
@@ -166,7 +166,7 @@ export class TableEditEnhancePlugin implements TBPlugin {
   private setSelectedCellsAndUpdateMaskStyle(injector: Injector, animate = true) {
     const selection = injector.get(TBSelection)
     const renderer = injector.get(Renderer)
-    const {startPosition, endPosition, selectedCells} = this.tableComponent!.instance.selectCells(
+    const {startPosition, endPosition, selectedCells} = this.tableComponent!.methods.selectCells(
       selection.startSlot as TableCellSlot,
       selection.endSlot as TableCellSlot)
 

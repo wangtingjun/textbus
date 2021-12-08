@@ -140,7 +140,7 @@ editor.onReady.subscribe(injector => {
 在实际的应用中，仅仅文字加粗是不满足需求的，我们更希望如果已经加粗了，则取消加粗。这时，则需要状态查询来帮助我们完成相应的功能。让我们继续完善上面的功能。
 
 ```ts
-import { Commander, Query } from '@textbus/core'
+import { Commander, Query, QueryStateType } from '@textbus/core'
 import { boldFormatLoader } from './bold-formatter'
 import { boldFormatter } from './inline-tag.formatter'
 

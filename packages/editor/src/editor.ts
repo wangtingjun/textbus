@@ -19,6 +19,8 @@ export class Editor extends CoreEditor {
   onReady: Observable<Injector>
   layout = new Layout()
 
+  injector: Injector | null = null
+
   private host: HTMLElement
 
   private readyEvent = new Subject<Injector>()
@@ -69,6 +71,7 @@ export class Editor extends CoreEditor {
         options.plugins?.forEach(plugin => {
           plugin.setup(rootInjector)
         })
+        this.injector = rootInjector
         this.readyEvent.next(rootInjector)
       })
     })

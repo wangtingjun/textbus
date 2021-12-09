@@ -127,7 +127,8 @@ import { boldFormatter } from './inline-tag.formatter'
 const boldBtn = document.getElementById('bold-btn')
 
 // 当编辑器准备好时，我们再添加功能
-editor.onReady.subscribe(injector => {
+editor.onReady.subscribe(() => {
+  const injector = editor.injector
   const commander = injector.get(Commander)
   boldBtn.addEventListener('click', () => {
     commander.applyFormat(boldFormatter, true)
@@ -147,7 +148,8 @@ import { boldFormatter } from './inline-tag.formatter'
 const boldBtn = document.getElementById('bold-btn')
 
 // 当编辑器准备好时，我们再添加功能
-editor.onReady.subscribe(injector => {
+editor.onReady.subscribe(() => {
+  const injector = editor.injector
   const commander = injector.get(Commander)
   const query = injector.get(Query)
   boldBtn.addEventListener('click', () => {
@@ -161,6 +163,154 @@ editor.onReady.subscribe(injector => {
     } else {
       commander.applyFormat(boldFormatter, true)
     }
+  })
+})
+```
+
+现在我们可以根据查询状态，分别设置应用或取消应用样式了，我们还需要实时监听编辑器内容的变化，让按钮呈现高亮的效果，给用户更好的反馈。
+
+```ts
+import { Commander, Query, QueryStateType, Renderer } from '@textbus/core'
+import { boldFormatLoader } from './bold-formatter'
+import { boldFormatter } from './inline-tag.formatter'
+
+const boldBtn = document.getElementById('bold-btn')
+
+// 当编辑器准备好时，我们再添加功能
+editor.onReady.subscribe(() => {
+  const injector = editor.injector
+  const commander = injector.get(Commander)
+  const query = injector.get(Query)
+  const renderer = injector.get(Renderer)
+  
+  renderer.onViewChecked.subscribe(() => {
+    const queryState = query.queryFormat(boldFormatter)
+    const isBold = queryState.state === QueryStateType.Enabled
+    
+    // 根据编辑器实时状态，高亮显示按钮
+    if (isBold) {
+      boldBtn.classList.add('active')
+    } else {
+      boldBtn.classList.remove('active')
+    }
+  })
+  boldBtn.addEventListener('click', () => {
+    // 通过 Query，查询当前光标所在范围是否已加粗
+    const queryState = query.queryFormat(boldFormatter)
+    const isBold = queryState.state === QueryStateType.Enabled
+    
+    // 如果已加粗，我们则取消应用加粗效果，否则就加粗
+    if (isBold) {
+      commander.unApplyFormat(boldFormatter)
+    } else {
+      commander.applyFormat(boldFormatter, true)
+    }
+  })
+})
+```
+
+至此，我们的加粗工具，就基本完成了。
+
+### 添加组件
+
+和前端框架一样，组件是指带有特定交互行为或结构的一个单独功能模块。要创建一个组件，只需要调用 `defineComponent` 函数，并编写特定的配置项即可。
+
+```tsx
+import { defineComponent, ContentType, useSlots, Slot } from '@textbus/core'
+
+export const myComponent = defineComponent({
+  type: ContentType.BlockComponent, // 设置组件类型
+  name: 'MyComponent',              // 组件的名字，不可重复
+  transform(translator, state) {    // 将当前组件 json 数据转换为实例
+    return translator.createSlot(state)
+  },
+  setup(slot) {
+    // 组件的具体逻辑
+    const slots = useSlots(slot || new Slot([
+      ContentType.Text
+    ]))
+    
+    return {
+      render(isOutputMode, slotRender) {
+        return (
+          <my-component>
+            {
+              slotRender(slots.get(0), () => {
+                return <div/>
+              })
+            }
+          </my-component>
+        )
+      },
+      toJSON() {
+        slots.get(0).toJSON()
+      }
+    }
+  }
+})
+```
+
+上面示例是一个最简单的组件，但它基本包含了 TextBus 组件的基本形态，更复杂的组件，无非是在这个基础上增加更多的逻辑而已。
+
+为了让 TextBus 能从 HTML 中识别出组件，我们还需要创建组件加载器。加载器用于从文档中识别并读取出组件的必要信息，从而生成 TextBus 的组件实例的工具类，由于 TextBus 是跨平台的，所以不同平台的加载器也可能是不同的，我们以 PC 平台为例。
+
+```ts
+import { Slot, ContentType } from '@textbus/core'
+
+export const myComponentLoader = {
+  // 设置组件的根元素为块级样式
+  reources: {
+    styleSheets: ['my-component{display:block}']
+  },
+  match(element) {
+    // 匹配一个 DOM 元素，返回 true 即表示为当前组件
+    return element.tagName.toLowerCase() === 'my-component'
+  },
+  read(element, injector, slotParser) {
+    // 读取当前 DOM 元素下组件指定的结构，并返回组件实例
+    const slot = slotParser(new Slot([
+      ContentType.Text
+    ]), element.children[0])
+    return paragraphComponent.createInstance(injector, slot)
+  },
+  component: myComponent
+}
+```
+
+现在我们在编辑器中添加我们刚创建的组件。
+
+```ts
+const editor = new Editor('#editor', {
+  componentLoaders: [
+    myComponentLoader
+  ]
+})
+```
+
+我们也可以继续添加一个按钮，点击按钮可以往文档中插入 MyComponent 组件。
+
+```html
+<div class="toolbar">
+  <button type="button" id="bold-btn">加粗</button>
+  <button type="button" id="insert-my-component">插入 MyComponent</button>
+</div>
+<div id="editor"></div>
+```
+
+```ts
+import { Commander, ContentType } from '@textbus/core'
+
+import { myComponent } from './my-component'
+
+const insertBtn = document.getElementById('insert-my-component')
+
+editor.onReady.subscribe(() => {
+  const injector = editor.injector
+  const commander = injector.get(Commander)
+
+  insertBtn.addEventListener('click', () => {
+    const componentInstance = myComponent.createInstance()
+    commander.insert(componentInstance)
   })
 })
 ```

@@ -115,7 +115,7 @@ export const todoListComponent = defineComponent({
 
 export const todoListComponentLoader: ComponentLoader = {
   component: todoListComponent,
-  metadata: {
+  resources: {
     styles: [
       `
 tb-todo-list {

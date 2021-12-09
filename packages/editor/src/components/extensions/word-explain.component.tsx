@@ -78,7 +78,7 @@ export const wordExplainComponent = defineComponent({
 
 export const wordExplainComponentLoader: ComponentLoader = {
   component: wordExplainComponent,
-  metadata: {
+  resources: {
     styles: [
       `
 tb-word-explain {

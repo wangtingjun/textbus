@@ -11,7 +11,7 @@ import {
 import { BaseEditorOptions } from '../core/types'
 import { EDITOR_OPTIONS } from '../core/injection-tokens'
 
-export interface ComponentMetadata {
+export interface ComponentResources {
   links?: Array<{ [key: string]: string }>
   styles?: string[]
   scripts?: string[]
@@ -23,7 +23,7 @@ export interface SlotParser {
 }
 
 export interface ComponentLoader {
-  metadata?: ComponentMetadata
+  resources?: ComponentResources
 
   match(element: HTMLElement): boolean
 

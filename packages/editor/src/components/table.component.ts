@@ -361,7 +361,7 @@ export const tableComponent = defineComponent({
 })
 
 export const tableComponentLoader: ComponentLoader = {
-  metadata: {
+  resources: {
     styles: [`
     td,th{border-width: 1px; border-style: solid;}
    table {border-spacing: 0; border-collapse: collapse; width: 100%; }

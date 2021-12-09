@@ -98,7 +98,7 @@ export const stepComponent = defineComponent({
 
 export const stepComponentLoader: ComponentLoader = {
   component: stepComponent,
-  metadata: {
+  resources: {
     styles: [`tb-step {
   display: flex;
 }

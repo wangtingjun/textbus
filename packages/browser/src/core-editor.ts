@@ -151,7 +151,7 @@ export class CoreEditor {
   private initDocStyleSheets(doc: Document, options: BaseEditorOptions) {
     const links: Array<{ [key: string]: string }> = []
 
-    const componentStyles = (options.componentLoaders || []).filter(i => i.metadata).map(i => i.metadata!).map(metadata => {
+    const componentStyles = (options.componentLoaders || []).filter(i => i.resources).map(i => i.resources!).map(metadata => {
       if (Array.isArray(metadata.links)) {
         links.push(...metadata.links)
       }

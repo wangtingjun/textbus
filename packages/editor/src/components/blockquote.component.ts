@@ -40,7 +40,7 @@ export const blockquoteComponent = defineComponent({
 })
 
 export const blockquoteComponentLoader: ComponentLoader = {
-  metadata: {
+  resources: {
     styles: [`blockquote {padding: 10px 15px; border-left: 10px solid #dddee1; background-color: #f8f8f9; margin: 1em 0; border-radius: 4px;} blockquote>*:first-child{margin-top:0}blockquote>*:last-child{margin-bottom:0}`]
   },
   match(element: HTMLElement): boolean {

@@ -70,7 +70,7 @@ export const alertComponent = defineComponent({
 
 export const alertComponentLoader: ComponentLoader = {
   component: alertComponent,
-  metadata: {
+  resources: {
     styles: [`.tb-alert {
   padding: 10px 15px;
   border-radius: 6px;

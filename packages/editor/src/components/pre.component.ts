@@ -394,7 +394,7 @@ export const preComponent = defineComponent({
 })
 
 export const preComponentLoader: ComponentLoader = {
-  metadata: {
+  resources: {
     styles: [`
     code, pre {background-color: #fefefe;}
    pre code {padding: 0; border: none; background: none; border-radius: 0; vertical-align: inherit;}

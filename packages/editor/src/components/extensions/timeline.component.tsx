@@ -98,7 +98,7 @@ export const timelineComponent = defineComponent({
 
 export const timelineComponentLoader: ComponentLoader = {
   component: timelineComponent,
-  metadata: {
+  resources: {
     styles: [
       `
 tb-timeline {

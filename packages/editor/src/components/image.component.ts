@@ -64,7 +64,7 @@ export const imageComponent = defineComponent({
 })
 
 export const imageComponentLoader: ComponentLoader = {
-  metadata: {
+  resources: {
     styles: ['img{max-width: 100%}']
   },
   match(element: HTMLElement): boolean {

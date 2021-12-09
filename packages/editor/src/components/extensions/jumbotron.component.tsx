@@ -66,7 +66,7 @@ export const jumbotronComponent = defineComponent({
 
 export const jumbotronComponentLoader: ComponentLoader = {
   component: jumbotronComponent,
-  metadata: {
+  resources: {
     styles: [`tb-jumbotron {
   display: block;
   min-height: 200px;

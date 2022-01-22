@@ -8,7 +8,7 @@ import {
   onEnter, onPaste,
   Slot, SlotLiteral,
   SlotRender,
-  Slots, TBSelection,
+  Slots, Selection,
   Translator, useContext,
   useSlots, useState,
   VElement,
@@ -29,6 +29,7 @@ import 'prismjs/components/prism-c'
 import 'prismjs/components/prism-cpp'
 import 'prismjs/components/prism-csharp'
 import 'prismjs/components/prism-go'
+import { paragraphComponent } from './paragraph.component'
 
 export const codeStyles = {
   keyword: 'keyword',
@@ -282,16 +283,18 @@ export const preComponent = defineComponent({
     let languageGrammar = getLanguageGrammar(data.lang)
     let [blockCommentStartString] = getLanguageBlockCommentStart(data.lang)
 
-    const stateController = useState(data.lang)
+    const stateController = useState({
+      lang: data.lang
+    })
     const injector = useContext()
 
-    const selection = injector.get(TBSelection)
+    const selection = injector.get(Selection)
 
     stateController.onChange.subscribe(newLang => {
-      data.lang = newLang
-      languageGrammar = getLanguageGrammar(newLang)
+      data.lang = newLang.lang
+      languageGrammar = getLanguageGrammar(newLang.lang)
 
-      blockCommentStartString = getLanguageBlockCommentStart(newLang)[0]
+      blockCommentStartString = getLanguageBlockCommentStart(newLang.lang)[0]
       isStop = true
       slots.toArray().forEach(i => {
         i.blockCommentStart = false
@@ -329,6 +332,24 @@ export const preComponent = defineComponent({
     })
 
     onEnter(ev => {
+      if (ev.target.isEmpty && ev.target === slots.last) {
+        const prevSlot = slots.get(slots.length - 2)
+        if (prevSlot?.isEmpty) {
+          const paragraph = paragraphComponent.createInstance(injector)
+          const parentComponent = selection.commonAncestorComponent!
+          const parentSlot = parentComponent.parent!
+          const index = parentSlot.indexOf(parentComponent)
+          parentSlot.retain(index + 1)
+          slots.remove(slots.last)
+          if (slots.length > 1) {
+            slots.remove(prevSlot)
+          }
+          parentSlot.insert(paragraph)
+          selection.setLocation(paragraph.slots.get(0)!, 0)
+          ev.preventDefault()
+          return
+        }
+      }
       const nextSlot = ev.target.cutTo(new CodeSlot, ev.data.index)
       slots.insertAfter(nextSlot, ev.target as CodeSlot)
       selection.setLocation(nextSlot, 0)
@@ -341,7 +362,10 @@ export const preComponent = defineComponent({
           label: i.label,
           onClick() {
             if (i.value !== data.lang) {
-              stateController.update(i.value)
+              data.lang = i.value
+              stateController.update(draft => {
+                draft.lang = i.value
+              })
             }
           }
         }

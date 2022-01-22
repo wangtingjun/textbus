@@ -6,14 +6,14 @@ import {
   QueryState,
   QueryStateType,
   Slot,
-  TBSelection,
+  Selection,
   Translator
 } from '@textbus/core'
 
 import { listComponent, ListComponentInstance, paragraphComponent } from '../../../components/_api'
 
 export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
-  const selection = injector.get(TBSelection)
+  const selection = injector.get(Selection)
   const translator = injector.get(Translator)
   const commander = injector.get(Commander)
   const instance = {
@@ -40,7 +40,7 @@ export function listToolCreator(injector: Injector, type: 'ul' | 'ol') {
       }
     },
     toParagraph(component: ComponentInstance<ListComponentInstance>) {
-      const range = selection.getSlotRange()!
+      const range = selection.getSlotRangeInCommonAncestorComponent()!
       const parent = component.parent!
       const index = parent.indexOf(component)
       const segment = component.methods.split!(range.startIndex, range.endIndex)

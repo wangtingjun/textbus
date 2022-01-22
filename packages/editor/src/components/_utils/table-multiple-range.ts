@@ -8,7 +8,7 @@ import {
   Slot,
   SlotLiteral,
   Slots,
-  TBSelection,
+  Selection,
   useContext,
   useSelf
 } from '@textbus/core'
@@ -146,9 +146,9 @@ export function autoComplete(table: TableCellSlot[][]) {
         }
       }
 
-      td.setState({
-        rowspan: td.state!.rowspan,
-        colspan: maxColspan
+      td.updateState(draft => {
+        draft.rowspan = td.state!.rowspan
+        draft.colspan = maxColspan
       })
 
       for (let i = rowIndex, len = td.state!.rowspan + rowIndex; i < len; i++) {
@@ -348,7 +348,7 @@ export function useTableMultipleRange(
   const injector = useContext()
   const nativeSelectionBridge = injector.get(SelectionBridge)
   const renderer = injector.get(Renderer)
-  const selection = injector.get(TBSelection)
+  const selection = injector.get(Selection)
   const editorContainer = injector.get(EDITOR_CONTAINER)
   const animateBezier = new CubicBezier(0.25, 0.1, 0.25, 0.1)
 

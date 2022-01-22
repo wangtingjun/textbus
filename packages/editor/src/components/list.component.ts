@@ -4,7 +4,7 @@ import {
   ContentType, defineComponent,
   onEnter,
   Slot, SlotLiteral,
-  SlotRender, TBSelection, Translator, useContext,
+  SlotRender, Selection, Translator, useContext,
   useSlots,
   VElement
 } from '@textbus/core'
@@ -22,8 +22,16 @@ export interface ListComponentState {
   slots: Slot[]
 }
 
+export interface SegmentedSlots<T extends Slot = Slot> {
+  before: T[]
+  middle: T[]
+  after: T[]
+}
+
 export interface ListComponentInstance extends ComponentMethods<ListComponentLiteral> {
-  type: 'ul' | 'ol'
+  type: 'ul' | 'ol',
+
+  split?(startIndex: number, endIndex: number): SegmentedSlots
 }
 
 export const listComponent = defineComponent({
@@ -37,7 +45,7 @@ export const listComponent = defineComponent({
   },
   setup(data: ListComponentState): ListComponentInstance {
     const injector = useContext()
-    const selection = injector.get(TBSelection)
+    const selection = injector.get(Selection)
 
     const slots = useSlots(data.slots || [new Slot([
       ContentType.Text,

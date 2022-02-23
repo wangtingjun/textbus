@@ -9,6 +9,9 @@ import { Parser } from '../dom-support/parser'
 export const isWindows = /win(dows|32|64)/i.test(navigator.userAgent)
 export const isMac = /mac os/i.test(navigator.userAgent)
 
+/**
+ * TextBus PC 端输入实现
+ */
 @Injectable()
 export class Input {
   private container = createElement('span', {
@@ -97,7 +100,7 @@ export class Input {
         }
 
         const div = document.createElement('div')
-        div.style.cssText = 'width:10px; height:10px; overflow: hidden; position: fixed; left: -9999px'
+        div.style.cssText = 'width:10px; height:10px; overflow: hidden; position: fixed; left: -9999px; top: -9999px; opacity:0'
         div.contentEditable = 'true'
         document.body.appendChild(div)
         div.focus()

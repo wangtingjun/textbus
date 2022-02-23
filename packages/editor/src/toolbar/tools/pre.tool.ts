@@ -57,7 +57,13 @@ export function preToolConfigFactory(injector: Injector): SelectToolConfig {
       label: 'Stylus',
       value: 'Stylus'
     }, {
-      label: 'Shell',
+      label: 'Jsx',
+      value: 'Jsx',
+    }, {
+      label: 'Tsx',
+      value: 'Tsx',
+    }, {
+      label: i18n.get('plugins.toolbar.preTool.defaultLang'),
       value: '',
       default: true
     }],
@@ -86,4 +92,6 @@ export function preToolConfigFactory(injector: Injector): SelectToolConfig {
   }
 }
 
-export const preTool = new SelectTool(preToolConfigFactory)
+export function preTool() {
+  return new SelectTool(preToolConfigFactory)
+}

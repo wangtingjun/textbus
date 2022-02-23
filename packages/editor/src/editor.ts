@@ -1,10 +1,10 @@
 import { Injector, Provider, Type } from '@tanbo/di'
 import { fromPromise, Observable, of, Subject } from '@tanbo/stream'
 import { makeError, Selection } from '@textbus/core'
-import { CoreEditor } from '@textbus/browser'
+import { CoreEditor, SelectionBridge } from '@textbus/browser'
 
 import { EditorOptions } from './types'
-import { rootComponent } from './root.component'
+import { rootComponentLoader } from './root.component'
 import { Layout } from './layout'
 import { I18n } from './i18n'
 import { i18n_zh_CN } from './i18n/zh_CN'
@@ -16,8 +16,13 @@ import { FileUploader, UploadConfig } from './file-uploader'
 
 const editorErrorFn = makeError('Editor')
 
+/**
+ * 基于 TextBus 内核和 PC 浏览器中间层的富文本实现
+ */
 export class Editor extends CoreEditor {
+  /** 编辑器是否初始化完成可观察对象 */
   onReady: Observable<Injector>
+  /** 编辑器 UI 布局相关的 DOM 对象管理类 */
   layout = new Layout()
 
   private host: HTMLElement
@@ -26,7 +31,7 @@ export class Editor extends CoreEditor {
 
   constructor(public selector: string | HTMLElement,
               options: EditorOptions = {}) {
-    super(options.rootComponent || rootComponent)
+    super()
     if (typeof selector === 'string') {
       this.host = document.querySelector(selector)!
     } else {
@@ -36,7 +41,6 @@ export class Editor extends CoreEditor {
       throw editorErrorFn('selector is not an HTMLElement, or the CSS selector cannot find a DOM element in the document.')
     }
     this.onReady = this.readyEvent.asObservable()
-    this.layout.workbench.append(this.scroller)
     if (options.theme) {
       this.layout.setTheme(options.theme)
     }
@@ -47,7 +51,7 @@ export class Editor extends CoreEditor {
       useValue: this.layout
     }, {
       provide: I18n,
-      useValue: new I18n(options.i18n as any, i18n_zh_CN)
+      useValue: new I18n(i18n_zh_CN, options.i18n as any)
     }, {
       provide: EditorController,
       useValue: new EditorController({
@@ -96,8 +100,8 @@ export class Editor extends CoreEditor {
     options.providers.push(...editorProviders)
 
     options.editingStyleSheets = options.editingStyleSheets || []
-    options.editingStyleSheets.push(`[textbus-document=true]::before {content: attr(data-placeholder); position: absolute; opacity: 0.6; z-index: -1;}`)
-    this.init(options).then(rootInjector => {
+    options.editingStyleSheets.push(`body{padding-bottom:50px}[textbus-document=true]{overflow:hidden}[textbus-document=true]::before {content: attr(data-placeholder); position: absolute; opacity: 0.6; z-index: -1;}`)
+    this.init(this.layout.scroller, options.rootComponentLoader || rootComponentLoader, options).then(rootInjector => {
       rootInjector.get(ContextMenu)
       setTimeout(() => {
         if (this.destroyed) {
@@ -106,6 +110,7 @@ export class Editor extends CoreEditor {
         options.plugins?.forEach(plugin => {
           plugin.setup(rootInjector)
         })
+        this.layout.listenCaretChange(rootInjector.get(SelectionBridge))
         this.readyEvent.next(rootInjector)
       })
     })
@@ -125,6 +130,7 @@ export class Editor extends CoreEditor {
         this.injector!.get(i as Type<{ destroy(): void }>).destroy()
       })
     }
+    this.layout.destroy()
     this.layout.container.parentNode?.removeChild(this.layout.container)
     super.destroy()
   }

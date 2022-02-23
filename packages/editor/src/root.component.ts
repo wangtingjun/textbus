@@ -1,7 +1,10 @@
+import { fromEvent } from '@tanbo/stream'
+import { Injector } from '@tanbo/di'
 import {
   ContentType,
   defineComponent,
-  onContentInsert, onSlotRemove,
+  onContentInsert,
+  onSlotRemove,
   Slot,
   SlotLiteral,
   SlotRender,
@@ -9,9 +12,9 @@ import {
   Translator,
   useContext,
   useSlots,
-  VElement
+  VElement, onDestroy, useRef, onEnter, ComponentInstance
 } from '@textbus/core'
-import { EDITOR_OPTIONS } from '@textbus/browser'
+import { ComponentLoader, EDITABLE_DOCUMENT, EDITOR_OPTIONS, SlotParser } from '@textbus/browser'
 
 import { paragraphComponent } from './components/paragraph.component'
 import { EditorOptions } from './types'
@@ -26,6 +29,7 @@ export const rootComponent = defineComponent({
     const injector = useContext()
     const selection = injector.get(Selection)
     const options = injector.get(EDITOR_OPTIONS) as EditorOptions
+    const editableDocument = injector.get(EDITABLE_DOCUMENT)
 
     const slots = useSlots([slot || new Slot([
       ContentType.Text,
@@ -50,8 +54,37 @@ export const rootComponent = defineComponent({
       }
     })
 
+    onEnter((ev) => {
+      const p = paragraphComponent.createInstance(injector)
+      const slot = slots.get(0)!
+      slot.insert(p)
+      selection.setLocation(p.slots.get(0)!, 0)
+      ev.preventDefault()
+    })
+
     onSlotRemove(ev => {
       ev.preventDefault()
+    })
+
+    const docContainer = useRef<HTMLElement>()
+
+    const sub = fromEvent<MouseEvent>(editableDocument, 'click').subscribe(ev => {
+      if (ev.clientY > docContainer.current!.getBoundingClientRect().height) {
+        const slot = slots.get(0)!
+        const lastContent = slot.getContentAtIndex(slot.length - 1)
+        if (!slot.isEmpty && typeof lastContent !== 'string' && lastContent.name !== paragraphComponent.name) {
+          const index = slot.index
+          slot.retain(slot.length)
+          const p = paragraphComponent.createInstance(injector)
+          slot.insert(p)
+          slot.retain(index)
+          selection.setLocation(p.slots.get(0)!, 0)
+        }
+      }
+    })
+
+    onDestroy(() => {
+      sub.unsubscribe()
     })
 
     return {
@@ -59,6 +92,7 @@ export const rootComponent = defineComponent({
         return slotRender(slots.get(0)!, () => {
           return new VElement('div', {
             'textbus-document': 'true',
+            'ref': docContainer,
             'data-placeholder': slots.get(0)?.isEmpty ? options.placeholder || '' : ''
           })
         })
@@ -69,3 +103,19 @@ export const rootComponent = defineComponent({
     }
   }
 })
+
+export const rootComponentLoader: ComponentLoader = {
+  component: rootComponent,
+  match(): boolean {
+    return true
+  },
+  read(element: HTMLElement, context: Injector, slotParser: SlotParser): ComponentInstance {
+    const slot = new Slot([
+      ContentType.Text,
+      ContentType.BlockComponent,
+      ContentType.InlineComponent
+    ])
+    slotParser(slot, element)
+    return rootComponent.createInstance(context, slot)
+  }
+}

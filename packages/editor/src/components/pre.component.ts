@@ -29,7 +29,10 @@ import 'prismjs/components/prism-c'
 import 'prismjs/components/prism-cpp'
 import 'prismjs/components/prism-csharp'
 import 'prismjs/components/prism-go'
+import 'prismjs/components/prism-jsx'
+import 'prismjs/components/prism-tsx'
 import { paragraphComponent } from './paragraph.component'
+import { I18n } from '../i18n'
 
 export const codeStyles = {
   keyword: 'keyword',
@@ -51,7 +54,7 @@ export const codeStyles = {
   'template-punctuation': 'string',
 }
 
-const languageList: Array<{ label: string, value: string }> = [{
+export const languageList: Array<{ label: string, value: string }> = [{
   label: 'JavaScript',
   value: 'JavaScript',
 }, {
@@ -94,8 +97,14 @@ const languageList: Array<{ label: string, value: string }> = [{
   label: 'Stylus',
   value: 'Stylus',
 }, {
-  label: 'Bash',
-  value: 'Bash',
+  label: 'Jsx',
+  value: 'Jsx',
+}, {
+  label: 'Tsx',
+  value: 'Tsx',
+}, {
+  label: '',
+  value: '',
 }]
 
 export interface PreComponentState {
@@ -128,12 +137,15 @@ function getLanguageBlockCommentStart(lang: string): [string, string] {
     Stylus: ['/*', '*/'],
     C: ['/*', '*/'],
     CPP: ['/*', '*/'],
-    CSharp: ['/*', '*/']
+    CSharp: ['/*', '*/'],
+    Tsx: ['/*', '*/'],
+    Jsx: ['/*', '*/']
   }
   return types[lang] || ['', '']
 }
 
 function getLanguageGrammar(lang: string): Grammar | null {
+  console.log(languages, lang)
   return {
     HTML: languages.html,
     JavaScript: languages.javascript,
@@ -149,7 +161,9 @@ function getLanguageGrammar(lang: string): Grammar | null {
     Stylus: languages.stylus,
     C: languages.c,
     CPP: languages.cpp,
-    CSharp: languages.csharp
+    CSharp: languages.csharp,
+    Jsx: languages.jsx,
+    Tsx: languages.tsx
   }[lang] || null
 }
 
@@ -167,7 +181,12 @@ function format(tokens: Array<string | Token>, slot: Slot, index: number) {
   })
 }
 
-function formatCodeLines(lines: string[], startBlock: boolean, blockCommentStartString: string, languageGrammar: Grammar | null) {
+function formatCodeLines(
+  lines: string[],
+  startBlock: boolean,
+  blockCommentStartString: string,
+  blockCommentEndString: string,
+  languageGrammar: Grammar | null) {
   return lines.map(i => {
     const slot = new CodeSlot()
     slot.blockCommentStart = startBlock
@@ -183,10 +202,21 @@ function formatCodeLines(lines: string[], startBlock: boolean, blockCommentStart
         slot.delete(2)
       }
       const lastToken = tokens.pop()
-      startBlock = !!lastToken && typeof lastToken !== 'string' &&
+
+      if (lastToken && typeof lastToken !== 'string' &&
         lastToken.type === 'comment' &&
-        (lastToken.content as string).indexOf(blockCommentStartString) === 0
-      slot.blockCommentEnd = !startBlock
+        (lastToken.content as string).indexOf(blockCommentStartString) === 0) {
+        const regString = blockCommentEndString.replace(new RegExp(`[${blockCommentEndString}]`, 'g'), i => '\\' + i)
+        slot.blockCommentEnd = new RegExp(regString + '$').test(lastToken.content as string)
+        startBlock = !slot.blockCommentEnd
+      } else {
+        startBlock = false
+      }
+
+      // startBlock = !!lastToken && typeof lastToken !== 'string' &&
+      //   lastToken.type === 'comment' &&
+      //   (lastToken.content as string).indexOf(blockCommentStartString) === 0
+      // slot.blockCommentEnd = !startBlock
     } else {
       slot.blockCommentEnd = true
     }
@@ -194,7 +224,13 @@ function formatCodeLines(lines: string[], startBlock: boolean, blockCommentStart
   })
 }
 
-function reformat(slots: Slots<CodeSlotSlotLiteral, CodeSlot>, startSlot: CodeSlot, languageGrammar: Grammar, commentStartString: string, forceFormat = false) {
+function reformat(
+  slots: Slots<CodeSlotSlotLiteral, CodeSlot>,
+  startSlot: CodeSlot,
+  languageGrammar: Grammar,
+  blockCommentStartString: string,
+  blockCommentEndString: string,
+  forceFormat = false) {
   const list = slots.toArray()
   let i = list.indexOf(startSlot)
   // if (list[0]) {
@@ -204,7 +240,7 @@ function reformat(slots: Slots<CodeSlotSlotLiteral, CodeSlot>, startSlot: CodeSl
     const slot = list[i]
     let code = slot.sliceContent()[0] as string
     if (slot.blockCommentStart) {
-      code = commentStartString + code
+      code = blockCommentStartString + code
     }
 
     const shadow = new Slot([ContentType.Text])
@@ -225,9 +261,14 @@ function reformat(slots: Slots<CodeSlotSlotLiteral, CodeSlot>, startSlot: CodeSl
     })
 
     const lastToken = tokens.pop()
-    slot.blockCommentEnd = !(!!lastToken && typeof lastToken !== 'string' &&
+    if (lastToken && typeof lastToken !== 'string' &&
       lastToken.type === 'comment' &&
-      (lastToken.content as string).indexOf(commentStartString) === 0)
+      (lastToken.content as string).indexOf(blockCommentStartString) === 0) {
+      const regString = blockCommentEndString.replace(new RegExp(`[${blockCommentEndString}]`, 'g'), i => '\\' + i)
+      slot.blockCommentEnd = new RegExp(regString + '$').test(lastToken.content as string)
+    } else {
+      slot.blockCommentEnd = true
+    }
 
     const next = list[i + 1]
     if (next) {
@@ -281,20 +322,22 @@ export const preComponent = defineComponent({
   },
   setup(data: PreComponentState) {
     let languageGrammar = getLanguageGrammar(data.lang)
-    let [blockCommentStartString] = getLanguageBlockCommentStart(data.lang)
+    let [blockCommentStartString, blockCommentEndString] = getLanguageBlockCommentStart(data.lang)
 
     const stateController = useState({
       lang: data.lang
     })
     const injector = useContext()
 
+    const i18n = injector.get(I18n)
+
     const selection = injector.get(Selection)
 
     stateController.onChange.subscribe(newLang => {
       data.lang = newLang.lang
-      languageGrammar = getLanguageGrammar(newLang.lang)
+      languageGrammar = getLanguageGrammar(newLang.lang);
 
-      blockCommentStartString = getLanguageBlockCommentStart(newLang.lang)[0]
+      [blockCommentStartString, blockCommentEndString] = getLanguageBlockCommentStart(newLang.lang)
       isStop = true
       slots.toArray().forEach(i => {
         i.blockCommentStart = false
@@ -306,12 +349,12 @@ export const preComponent = defineComponent({
           i.retain(i.length, codeStyleFormatter, null)
         })
       } else {
-        reformat(slots, slots.get(0)!, languageGrammar!, blockCommentStartString, true)
+        reformat(slots, slots.get(0)!, languageGrammar!, blockCommentStartString, blockCommentEndString, true)
       }
       isStop = false
     })
 
-    const slotList = formatCodeLines(data.code.split('\n'), false, blockCommentStartString, languageGrammar)
+    const slotList = formatCodeLines(data.code.split('\n'), false, blockCommentStartString, blockCommentEndString, languageGrammar)
     const slots = useSlots<CodeSlot, CodeSlotSlotLiteral>(slotList, state => {
       const s = new CodeSlot()
       s.blockCommentEnd = state.blockCommentEnd
@@ -325,7 +368,7 @@ export const preComponent = defineComponent({
       if (languageGrammar && !isStop) {
         isStop = true
         const index = data.source.index
-        reformat(slots, data.source, languageGrammar, blockCommentStartString)
+        reformat(slots, data.source, languageGrammar, blockCommentStartString, blockCommentEndString)
         data.source.retain(index)
         isStop = false
       }
@@ -350,8 +393,15 @@ export const preComponent = defineComponent({
           return
         }
       }
-      const nextSlot = ev.target.cutTo(new CodeSlot, ev.data.index)
+      const nextSlot = ev.target.cutTo(new CodeSlot(), ev.data.index)
       slots.insertAfter(nextSlot, ev.target as CodeSlot)
+      if (languageGrammar && !isStop) {
+        isStop = true
+        const index = nextSlot.index
+        reformat(slots, nextSlot, languageGrammar, blockCommentStartString, blockCommentEndString)
+        nextSlot.retain(index)
+        isStop = false
+      }
       selection.setLocation(nextSlot, 0)
       ev.preventDefault()
     })
@@ -359,7 +409,7 @@ export const preComponent = defineComponent({
     onContextMenu(() => {
       return languageList.map(i => {
         return {
-          label: i.label,
+          label: i.label || i18n.get('components.preComponent.defaultLang'),
           onClick() {
             if (i.value !== data.lang) {
               data.lang = i.value
@@ -380,26 +430,32 @@ export const preComponent = defineComponent({
         target.insert(firstCode)
       }
       const index = slots.indexOf(target)
-      slots.retain(index + 1)
-      const slotList = formatCodeLines(codeList, !target.blockCommentEnd, blockCommentStartString, languageGrammar)
-      slots.insert(...slotList)
+      if (codeList.length) {
+        slots.retain(index + 1)
+        const slotList = formatCodeLines(codeList, !target.blockCommentEnd, blockCommentStartString, blockCommentEndString, languageGrammar)
+        const last = slotList[slotList.length - 1]
+        slots.insert(...slotList)
+        selection.setLocation(last, last.index)
+      } else {
+        selection.setLocation(target, target.index)
+      }
       ev.preventDefault()
     })
 
     return {
       render(isOutputMode: boolean, slotRender: SlotRender): VElement {
         const block = new VElement('pre', null, [
-          new VElement('span', {
+          new VElement('div', {
             class: 'tb-code-line-number-bg',
             style: {
               width: Math.max(String(slots.length).length, 2) + 'em'
             }
           }),
-          new VElement('span', {
+          new VElement('div', {
             class: 'tb-code-content'
           }, slots.toArray().map(item => {
             return slotRender(item, () => {
-              return new VElement('span', {
+              return new VElement('div', {
                 class: 'tb-code-line'
               })
             })

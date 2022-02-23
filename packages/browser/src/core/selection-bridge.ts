@@ -13,15 +13,18 @@ import {
 } from '@textbus/core'
 
 import { Caret, getLayoutRectByRange } from './caret'
-import { EDITABLE_DOCUMENT, EDITOR_CONTAINER, SCROLL_CONTAINER } from './injection-tokens'
+import { EDITABLE_DOCUMENT, EDITOR_CONTAINER } from './injection-tokens'
 import { createElement } from '../_utils/uikit'
 
+/**
+ * TextBus PC 端选区桥接实现
+ */
 @Injectable()
 export class SelectionBridge implements NativeSelectionBridge {
   onSelectionChange: Observable<Range | null>
   nativeSelection = this.document.getSelection()!
 
-  caret = new Caret(this.document, this.container, this.scrollContainer)
+  caret = new Caret(this.document, this.container)
 
   private hideMaskStyleElement = createElement('style', {
     props: {
@@ -36,7 +39,6 @@ export class SelectionBridge implements NativeSelectionBridge {
 
   constructor(@Inject(EDITABLE_DOCUMENT) private document: Document,
               @Inject(EDITOR_CONTAINER) private container: HTMLElement,
-              @Inject(SCROLL_CONTAINER) private scrollContainer: HTMLElement,
               private renderer: Renderer) {
     this.onSelectionChange = this.selectionChangeEvent.asObservable().pipe(tap((r) => {
       if (r?.collapsed) {

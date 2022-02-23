@@ -36,6 +36,10 @@ export class Slot<T = any> {
 
   private componentChangeListeners = new WeakMap<ComponentInstance, Subscription>()
 
+  get parentSlot() {
+    return this.parent?.parent || null
+  }
+
   /** 插槽内容长度 */
   get length() {
     return this.content.length
@@ -389,7 +393,7 @@ export class Slot<T = any> {
    * @param startIndex
    * @param endIndex
    */
-  cutTo<T extends Slot>(slot: T, startIndex = 0, endIndex = this.length): T {
+  cutTo<U extends Slot>(slot: U, startIndex = 0, endIndex = this.length): U {
     if (startIndex < 0) {
       startIndex = 0
     }

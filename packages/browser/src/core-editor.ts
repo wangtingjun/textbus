@@ -1,13 +1,19 @@
+import { Observable, Subject, Subscription } from '@tanbo/stream'
 import { Injector, Provider, Type } from '@tanbo/di'
 import {
-  Component,
   NativeRenderer,
   NativeSelectionBridge,
-  Renderer, RootComponentRef,
-  Translator, makeError, OutputRenderer, bootstrap, Slot, ContentType
+  Renderer,
+  RootComponentRef,
+  Translator,
+  makeError,
+  OutputRenderer,
+  bootstrap,
+  Starter,
+  ComponentInstance,
 } from '@textbus/core'
 
-import { Parser, OutputTranslator, ComponentResources } from './dom-support/_api'
+import { Parser, OutputTranslator, ComponentResources, ComponentLoader } from './dom-support/_api'
 import { createElement } from './_utils/uikit'
 import {
   getIframeHTML,
@@ -17,10 +23,9 @@ import {
   EDITOR_CONTAINER,
   EDITOR_OPTIONS,
   DomRenderer,
-  SelectionBridge, Plugin, SCROLL_CONTAINER
+  SelectionBridge, Plugin
 } from './core/_api'
 import { DefaultShortcut } from './preset/_api'
-import { Observable, Subject, Subscription } from '@tanbo/stream'
 
 export interface OutputContents<T = any> {
   content: T
@@ -30,37 +35,24 @@ export interface OutputContents<T = any> {
 
 const editorError = makeError('CoreEditor')
 
+/**
+ * TextBus PC 端编辑器
+ */
 export class CoreEditor {
+  /** 当编辑器内容变化时触发 */
   onChange: Observable<void>
-  scroller = createElement('div', {
-    styles: {
-      overflow: 'auto',
-      width: '100%',
-      height: '100%',
-      boxSizing: 'border-box'
-    }
-  })
 
-  injector: Injector | null = null
+  /** 访问编辑器内部实例的 IoC 容器 */
+  injector: Starter | null = null
 
+  /** 编辑器是否已销毁 */
   destroyed = false
+  /** 编辑器是否已准备好 */
   isReady = false
-  options: BaseEditorOptions = {}
+  /** 编辑器的默认配置项*/
+  options: BaseEditorOptions | null = null
 
   protected plugins: Plugin[] = []
-
-  protected docContainer = createElement('div', {
-    styles: {
-      padding: '8px 0',
-      position: 'relative',
-      boxShadow: '1px 2px 4px rgb(0,0,0,0.2)',
-      backgroundColor: '#fff',
-      minHeight: '100%',
-      margin: '0 auto',
-      transition: 'width 1.2s cubic-bezier(.36,.66,.04,1)',
-      boxSizing: 'border-box'
-    }
-  })
 
   protected defaultPlugins: Type<Plugin>[] = [
     DefaultShortcut,
@@ -70,18 +62,26 @@ export class CoreEditor {
 
   protected subs: Subscription[] = []
 
-  constructor(public rootComponentFactory: Component) {
+  private workbench!: HTMLElement
+
+  constructor() {
     this.onChange = this.changeEvent.asObservable()
-    this.scroller.appendChild(this.docContainer)
   }
 
-  init(options: BaseEditorOptions): Promise<Injector> {
+  /**
+   * 初始化编辑器
+   * @param host 编辑器容器
+   * @param rootComponentLoader 根组件加载器
+   * @param options 编辑器的配置项
+   */
+  init(host: HTMLElement, rootComponentLoader: ComponentLoader, options: BaseEditorOptions = {}): Promise<Injector> {
     if (this.destroyed) {
       return Promise.reject(editorError('the editor instance is destroyed!'))
     }
     this.options = options
     this.plugins = options.plugins || []
-    return this.createLayout().then(layout => {
+    return this.createLayout(host).then(layout => {
+      this.workbench = layout.workbench
       const staticProviders: Provider[] = [{
         provide: EDITABLE_DOCUMENT,
         useValue: layout.document
@@ -91,9 +91,6 @@ export class CoreEditor {
       }, {
         provide: EDITOR_CONTAINER,
         useValue: layout.workbench
-      }, {
-        provide: SCROLL_CONTAINER,
-        useValue: this.scroller
       }, {
         provide: NativeRenderer,
         useClass: DomRenderer
@@ -121,24 +118,28 @@ export class CoreEditor {
         const parser = starter.get(Parser)
         const translator = starter.get(Translator)
 
-        const slot = new Slot([
-          ContentType.BlockComponent
-        ])
-        const component = this.rootComponentFactory.createInstance(starter, slot)
-        if (typeof options.content === 'string') {
-          parser.parse(options.content || '', slot)
-        } else if (options.content) {
-          translator.fillSlot(options.content, slot)
+        let component: ComponentInstance
+        const content = options.content
+        if (content) {
+          if (typeof content === 'string') {
+            component = parser.parseDoc(content, rootComponentLoader)
+          } else {
+            const data = rootComponentLoader.component.transform(translator, content.state)
+            component = rootComponentLoader.component.createInstance(starter, data)
+          }
+        } else {
+          component = rootComponentLoader.component.createInstance(starter)
         }
+
         starter.mount(component, layout.document.body)
         const doc = starter.get(EDITABLE_DOCUMENT)
         const renderer = starter.get(Renderer)
 
-        this.initDocStyleSheets(doc, options)
+        this.initDocStyleSheetsAndScripts(doc, options)
         this.defaultPlugins.forEach(i => starter.get(i).setup(starter))
 
         const resizeObserver = new ResizeObserver((e) => {
-          this.docContainer.style.height = e[0].borderBoxSize[0].blockSize + 'px'
+          this.workbench.style.height = e[0].borderBoxSize[0].blockSize + 'px'
         })
         resizeObserver.observe(doc.body as any)
         if (this.destroyed) {
@@ -155,6 +156,9 @@ export class CoreEditor {
     })
   }
 
+  /**
+   * 获取 content 为 HTML 格式的内容
+   */
   getContents(): OutputContents<string> {
     if (this.destroyed) {
       throw editorError('the editor instance is destroyed!')
@@ -177,6 +181,9 @@ export class CoreEditor {
     }
   }
 
+  /**
+   * 获取 content 为 JSON 格式的内容
+   */
   getJSON(): OutputContents {
     if (this.destroyed) {
       throw editorError('the editor instance is destroyed!')
@@ -186,7 +193,7 @@ export class CoreEditor {
     }
     const injector = this.injector!
 
-    const rootComponentRef = injector.get(RootComponentRef as Type<RootComponentRef>)
+    const rootComponentRef = injector.get(RootComponentRef)
 
     return {
       content: rootComponentRef.component.toJSON(),
@@ -195,12 +202,18 @@ export class CoreEditor {
     }
   }
 
+  /**
+   * 销毁编辑器
+   */
   destroy() {
     if (this.destroyed) {
       return
     } else {
       this.destroyed = true
       this.subs.forEach(i => i.unsubscribe())
+      this.plugins.forEach(i => {
+        i.onDestroy?.()
+      })
       if (this.injector) {
         const types = [
           Input,
@@ -208,18 +221,17 @@ export class CoreEditor {
         types.forEach(i => {
           this.injector!.get(i as Type<{ destroy(): void }>).destroy()
         })
+        this.injector.destroy()
       }
-      this.plugins.forEach(i => {
-        i.onDestroy?.()
-      })
-      this.scroller.parentNode?.removeChild(this.scroller)
+      this.workbench.parentNode?.removeChild(this.workbench)
     }
   }
 
-  private initDocStyleSheets(doc: Document, options: BaseEditorOptions) {
+  private initDocStyleSheetsAndScripts(doc: Document, options: BaseEditorOptions) {
     const links: Array<{ [key: string]: string }> = []
 
-    const componentStyles = (options.componentLoaders || []).filter(i => i.resources).map(i => i.resources!).map(metadata => {
+    const resources = (options.componentLoaders || []).filter(i => i.resources).map(i => i.resources!)
+    const componentStyles = resources.map(metadata => {
       if (Array.isArray(metadata.links)) {
         links.push(...metadata.links)
       }
@@ -235,11 +247,19 @@ export class CoreEditor {
     const styleEl = doc.createElement('style')
     styleEl.innerHTML = CoreEditor.cssMin([...docStyles, ...(options.editingStyleSheets || [])].join(''))
     doc.head.append(styleEl)
+
+    resources.filter(i => i.scripts?.length).map(i => i.scripts).flat().forEach(src => {
+      if (src) {
+        const script = doc.createElement('script')
+        script.src = src
+        doc.head.appendChild(script)
+      }
+    })
   }
 
   private getAllComponentResources() {
     const resources: Array<{ componentName: string, resources: ComponentResources }> = []
-    this.options.componentLoaders?.forEach(i => {
+    this.options!.componentLoaders?.forEach(i => {
       if (i.resources) {
         resources.push({
           componentName: i.component.name,
@@ -251,7 +271,7 @@ export class CoreEditor {
     return resources
   }
 
-  private createLayout() {
+  private createLayout(host: HTMLElement) {
     const workbench = createElement('div', {
       styles: {
         width: '100%',
@@ -283,7 +303,7 @@ export class CoreEditor {
           document: doc
         })
       }
-      this.docContainer.appendChild(workbench)
+      host.appendChild(workbench)
     })
   }
 
